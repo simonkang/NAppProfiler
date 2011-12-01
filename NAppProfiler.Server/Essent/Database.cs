@@ -14,8 +14,11 @@ namespace NAppProfiler.Server.Essent
         private readonly Configuration.ConfigManager config;
         private readonly string databaseFullPath;
         private readonly string databaseDirectory;
+        private readonly object disposeLock;
+        private readonly LogTableSchema tblSchema;
         private JET_INSTANCE instance;
-        private object disposeLock;
+        private Session session;
+        private JET_DBID dbid;
         private bool disposed;
 
         public string DatabaseFullPath { get { return databaseFullPath; } }
@@ -26,6 +29,7 @@ namespace NAppProfiler.Server.Essent
             databaseDirectory = GetDatabaseDirectory();
             databaseFullPath = Path.Combine(databaseDirectory, "NAppProfiler.edb");
             this.disposeLock = new object();
+            this.tblSchema = new LogTableSchema();
         }
 
         public void InitializeDatabase()
@@ -35,14 +39,19 @@ namespace NAppProfiler.Server.Essent
             {
                 CreateDatabase();
             }
+            session = new Session(instance);
+            var ret = Api.JetAttachDatabase(session, databaseFullPath, AttachDatabaseGrbit.None);
+            ret = Api.JetOpenDatabase(session, databaseFullPath, null, out dbid, OpenDatabaseGrbit.None);
+            tblSchema.InitializeColumnIDS(session, dbid);
         }
 
         void CreateDatabase()
         {
-            using (var session = new Session(instance))
+            using (var sid = new Session(instance))
             {
-                JET_DBID dbid;
-                Api.JetCreateDatabase(session, databaseFullPath, null, out dbid, CreateDatabaseGrbit.None);
+                Api.JetCreateDatabase(sid, databaseFullPath, null, out dbid, CreateDatabaseGrbit.None);
+                tblSchema.Create(sid, dbid);
+                Api.JetCloseDatabase(sid, dbid, CloseDatabaseGrbit.None);
             }
         }
 
@@ -88,6 +97,14 @@ namespace NAppProfiler.Server.Essent
                     return;
                 disposed = true;
                 GC.SuppressFinalize(this);
+                if (tblSchema != null)
+                {
+                    tblSchema.Dispose();
+                }
+                if (session != null)
+                {
+                    session.Dispose();
+                }
                 Api.JetTerm2(instance, TermGrbit.Complete);
             }
         }

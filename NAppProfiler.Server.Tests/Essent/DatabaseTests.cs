@@ -13,6 +13,11 @@ namespace NAppProfiler.Server.Tests.Essent
     [TestFixture]
     class DatabaseTests
     {
+        public static implicit operator DatabaseTests(int value)
+        {
+            return new DatabaseTests();
+        }
+
         [Test]
         public void GetDatabaseDefaultDirectory()
         {
@@ -29,10 +34,9 @@ namespace NAppProfiler.Server.Tests.Essent
         {
             using (var db = new Database(new ConfigManager()))
             {
-                var dbDate = new DateTime(2011, 11, 15);
-                if (File.Exists(db.DatabaseFullPath))
+                if (Directory.Exists(db.GetDatabaseDirectory()))
                 {
-                    File.Delete(db.DatabaseFullPath);
+                    Directory.Delete(db.GetDatabaseDirectory(), true);
                 }
                 db.InitializeDatabase();
                 Assert.IsTrue(File.Exists(db.DatabaseFullPath));
