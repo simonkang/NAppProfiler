@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NAppProfiler.Server", "NAppProfiler.Server\NAppProfiler.Server.csproj", "{FAAB7239-5F85-4238-AC98-A3D4241BB0F1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NAppProfiler.Server.Tests", "NAppProfiler.Server.Tests\NAppProfiler.Server.Tests.csproj", "{B3A39B61-A6B1-455D-B29D-AEE3A5A296E4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FAAB7239-5F85-4238-AC98-A3D4241BB0F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FAAB7239-5F85-4238-AC98-A3D4241BB0F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FAAB7239-5F85-4238-AC98-A3D4241BB0F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FAAB7239-5F85-4238-AC98-A3D4241BB0F1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B3A39B61-A6B1-455D-B29D-AEE3A5A296E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B3A39B61-A6B1-455D-B29D-AEE3A5A296E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B3A39B61-A6B1-455D-B29D-AEE3A5A296E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B3A39B61-A6B1-455D-B29D-AEE3A5A296E4}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
