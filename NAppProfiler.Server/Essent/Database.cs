@@ -125,5 +125,16 @@ namespace NAppProfiler.Server.Essent
                 return databaseDirectory;
             }
         }
+
+        //TODO: Use LogEntity for Testing - Need to change to BSON object in Client Library
+        public long? InsertLog(DateTime createdDateTime, long elapsed, byte[] data)
+        {
+            return tblSchema.InsertLog(session, createdDateTime, elapsed, data);
+        }
+
+        public IList<LogEntity> RetrieveLogByIDs(params long[] ids)
+        {
+            return tblSchema.RetrieveLogByIDs(session, ids);
+        }
     }
 }

@@ -5,6 +5,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NAppProfiler.Server", "NApp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NAppProfiler.Server.Tests", "NAppProfiler.Server.Tests\NAppProfiler.Server.Tests.csproj", "{B3A39B61-A6B1-455D-B29D-AEE3A5A296E4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NAppProfiler.Client", "NAppProfiler.Client\NAppProfiler.Client.csproj", "{BBECB4DE-81A9-48CB-9A28-8FC9D3EA1BDD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NAppProfiler.Client.Tests", "NAppProfiler.Client.Tests\NAppProfiler.Client.Tests.csproj", "{83D7032D-1DA5-4BB5-A895-80C7D48BB724}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -19,6 +23,14 @@ Global
 		{B3A39B61-A6B1-455D-B29D-AEE3A5A296E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B3A39B61-A6B1-455D-B29D-AEE3A5A296E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B3A39B61-A6B1-455D-B29D-AEE3A5A296E4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BBECB4DE-81A9-48CB-9A28-8FC9D3EA1BDD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BBECB4DE-81A9-48CB-9A28-8FC9D3EA1BDD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BBECB4DE-81A9-48CB-9A28-8FC9D3EA1BDD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BBECB4DE-81A9-48CB-9A28-8FC9D3EA1BDD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{83D7032D-1DA5-4BB5-A895-80C7D48BB724}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{83D7032D-1DA5-4BB5-A895-80C7D48BB724}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{83D7032D-1DA5-4BB5-A895-80C7D48BB724}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{83D7032D-1DA5-4BB5-A895-80C7D48BB724}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

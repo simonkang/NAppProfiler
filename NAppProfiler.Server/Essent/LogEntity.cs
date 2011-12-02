@@ -7,8 +7,29 @@ namespace NAppProfiler.Server.Essent
 {
     public class LogEntity
     {
-        private readonly ulong key;
-        private readonly DateTime logDate;
-        //private readonly 
+        private readonly long id;
+        private readonly DateTime createdDateTime;
+        private readonly TimeSpan elapsed;
+        private readonly byte[] data;
+
+        public long ID { get { return id; } }
+        public DateTime CreatedDateTime { get { return createdDateTime; } }
+        public TimeSpan Elapsed { get { return elapsed; } }
+        public byte[] Data { get { return data; } }
+
+        public LogEntity(DateTime createdDateTime, TimeSpan elapsed, byte[] data)
+        {
+            this.createdDateTime = createdDateTime;
+            this.elapsed = elapsed;
+            this.data = data;
+        }
+
+        public LogEntity(long id, DateTime createdDateTime, TimeSpan elapsed, byte[] data)
+        {
+            this.id = id;
+            this.createdDateTime = createdDateTime;
+            this.elapsed = elapsed;
+            this.data = data;
+        }
     }
 }

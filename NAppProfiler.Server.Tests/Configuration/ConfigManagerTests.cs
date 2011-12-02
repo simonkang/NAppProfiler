@@ -8,7 +8,7 @@ using NAppProfiler.Server.Configuration;
 namespace NAppProfiler.Server.Tests.Configuration
 {
     [TestFixture]
-    class ConfigManagerTests
+    public class ConfigManagerTests
     {
         [Test]
         public void GetSettingTest()
