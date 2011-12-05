@@ -75,6 +75,7 @@ namespace NAppProfiler.Server.Tests.Essent
             using (var db = new Database(new ConfigManager()))
             {
                 db.InitializeDatabase();
+                var size = db.Size();
                 var start = DateTime.UtcNow;
                 DateTime stop;
                 TimeSpan ts;

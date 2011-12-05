@@ -161,5 +161,13 @@ namespace NAppProfiler.Server.Essent
         {
             return tblSchema.CountAll(session);
         }
+
+        public long Size()
+        {
+            int sizePages;
+            Api.JetGetDatabaseInfo(session, dbid, out sizePages, JET_DbInfo.SpaceOwned);
+            long sizeBytes = ((long)sizePages) * SystemParameters.DatabasePageSize;
+            return sizeBytes;
+        }
     }
 }
