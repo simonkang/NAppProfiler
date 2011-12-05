@@ -2,8 +2,10 @@
   <Settings activeconfig="Debug" />
   <Config name="Debug" binpathtype="Auto">
     <assembly path="NAppProfiler.Server.Tests\bin\Debug\NAppProfiler.Server.Tests.dll" />
+    <assembly path="NAppProfiler.Client.Tests\bin\Debug\NAppProfiler.Client.Tests.dll" />
   </Config>
   <Config name="Release" binpathtype="Auto">
     <assembly path="NAppProfiler.Server.Tests\bin\Release\NAppProfiler.Server.Tests.dll" />
+    <assembly path="NAppProfiler.Client.Tests\bin\Release\NAppProfiler.Client.Tests.dll" />
   </Config>
 </NUnitProject>

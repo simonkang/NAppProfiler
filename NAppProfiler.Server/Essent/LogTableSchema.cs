@@ -96,7 +96,7 @@ namespace NAppProfiler.Server.Essent
                     Api.SetColumn(session, logTable, colID_Data, data);
                     updt.Save();
                 }
-                tran.Commit(CommitTransactionGrbit.None);
+                tran.Commit(CommitTransactionGrbit.LazyFlush);
             }
             return ret;
         }
@@ -115,6 +115,37 @@ namespace NAppProfiler.Server.Essent
                     var data = Api.RetrieveColumn(session, logTable, colID_Data);
                     ret.Add(new LogEntity(ids[i], new DateTime(createLong), new TimeSpan(elapsedLong), data));
                 }
+            }
+            return ret;
+        }
+
+        public long Count(JET_SESID session, DateTime from, DateTime to)
+        {
+            var ret = 0L;
+            Api.JetSetCurrentIndex(session, logTable, idxName_Created);
+            Api.MakeKey(session, logTable, from.Ticks, MakeKeyGrbit.NewKey);
+            if (Api.TrySeek(session, logTable, SeekGrbit.SeekGE))
+            {
+                Api.MakeKey(session, logTable, to.Ticks, MakeKeyGrbit.NewKey);
+                if (Api.TrySetIndexRange(session, logTable, SetIndexRangeGrbit.RangeInclusive | SetIndexRangeGrbit.RangeUpperLimit))
+                {
+                    do
+                    {
+                        ret++;
+                    }
+                    while (Api.TryMoveNext(session, logTable));
+                }
+            }
+            return ret;
+        }
+
+        public long CountAll(JET_SESID session)
+        {
+            var ret = 0L;
+            Api.MoveBeforeFirst(session, logTable);
+            while (Api.TryMoveNext(session, logTable))
+            {
+                ret++;
             }
             return ret;
         }

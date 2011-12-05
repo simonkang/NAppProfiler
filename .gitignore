@@ -4,4 +4,4 @@
 *.user
 TestResult.xml
 *.VisualState.xml
-Db
+[Dd][Bb]

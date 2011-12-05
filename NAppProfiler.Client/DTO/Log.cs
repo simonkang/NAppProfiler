@@ -14,13 +14,34 @@ namespace NAppProfiler.Client.DTO
         [JsonIgnore]
         public bool CompressDescriptions { get; set; }
 
-        public string Svc { get; set; }    // Service
-        public string Mtd { get; set; }    // Method
-        public byte[] CIP { get; set; }    // Client IP
-        public bool Err { get; set; }      //
+        /// <summary>
+        /// Service Name
+        /// </summary>
+        public string Svc { get; set; } 
+        /// <summary>
+        /// Mehod Name
+        /// </summary>
+        public string Mtd { get; set; }
+        /// <summary>
+        /// Client IP Addres
+        /// </summary>
+        public byte[] CIP { get; set; }
+        /// <summary>
+        /// Exception Occurred
+        /// </summary>
+        public bool Err { get; set; } 
+        /// <summary>
+        /// Service Start Time
+        /// </summary>
         public DateTime CrDT { get; set; } // Created DateTime
-        public long ED { get; set; }  // Elapsed Timespan Ticks
-        public IList<LogDetail> Dtl { get; set; } // Log Details
+        /// <summary>
+        /// Elapsed Time in Timespan Ticks
+        /// </summary>
+        public long ED { get; set; }
+        /// <summary>
+        /// Log Detail List
+        /// </summary>
+        public IList<LogDetail> Dtl { get; set; }
 
         [OnSerializing]
         internal void OnSerializingMethod(StreamingContext context)

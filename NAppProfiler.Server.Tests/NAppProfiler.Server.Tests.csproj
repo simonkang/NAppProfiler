@@ -60,11 +60,17 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
+    <ProjectReference Include="..\NAppProfiler.Client\NAppProfiler.Client.csproj">
+      <Project>{BBECB4DE-81A9-48CB-9A28-8FC9D3EA1BDD}</Project>
+      <Name>NAppProfiler.Client</Name>
+    </ProjectReference>
     <ProjectReference Include="..\NAppProfiler.Server\NAppProfiler.Server.csproj">
       <Project>{FAAB7239-5F85-4238-AC98-A3D4241BB0F1}</Project>
       <Name>NAppProfiler.Server</Name>

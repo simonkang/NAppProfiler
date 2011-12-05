@@ -69,12 +69,18 @@ namespace NAppProfiler.Server.Essent
 
         void SetSystemParameters()
         {
-            var cacheSizeMaxMB = 0;
-            if (!int.TryParse(config.GetSetting(SettingKeys.Database_CacheSizeMax), out cacheSizeMaxMB))
+            var cacheSizeMB = 0;
+            if (!int.TryParse(config.GetSetting(SettingKeys.Database_CacheSizeMax), out cacheSizeMB))
             {
-                cacheSizeMaxMB = 1024;
+                cacheSizeMB = 1024;
             }
-            SystemParameters.CacheSizeMax = ((cacheSizeMaxMB * 1024) / SystemParameters.DatabasePageSize) * 1024;
+            SystemParameters.CacheSizeMax = ((cacheSizeMB * 1024) / SystemParameters.DatabasePageSize) * 1024;
+
+            if (!int.TryParse(config.GetSetting(SettingKeys.Database_CacheSizeMin), out cacheSizeMB))
+            {
+                cacheSizeMB = 512;
+            }
+            SystemParameters.CacheSizeMin = ((cacheSizeMB * 1024) / SystemParameters.DatabasePageSize) * 1024;
         }
 
         void SetInstanceParameters()
@@ -87,6 +93,7 @@ namespace NAppProfiler.Server.Essent
             instanceParms.TempDirectory = Path.Combine(databaseDirectory, "temp");
             instanceParms.SystemDirectory = Path.Combine(databaseDirectory, "system");
             instanceParms.LogFileDirectory = Path.Combine(databaseDirectory, "logs");
+            instanceParms.CheckpointDepthMax = 100 * 1024 * 1024;
         }
 
         public void Dispose()
@@ -135,6 +142,16 @@ namespace NAppProfiler.Server.Essent
         public IList<LogEntity> RetrieveLogByIDs(params long[] ids)
         {
             return tblSchema.RetrieveLogByIDs(session, ids);
+        }
+
+        public long Count(DateTime from, DateTime to)
+        {
+            return tblSchema.Count(session, from, to);
+        }
+
+        public long Count()
+        {
+            return tblSchema.CountAll(session);
         }
     }
 }
