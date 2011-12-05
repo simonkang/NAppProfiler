@@ -65,7 +65,9 @@
     </None>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Index\" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NAppProfiler.Client\NAppProfiler.Client.csproj">
       <Project>{BBECB4DE-81A9-48CB-9A28-8FC9D3EA1BDD}</Project>

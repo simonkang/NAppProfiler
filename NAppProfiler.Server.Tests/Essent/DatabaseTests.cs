@@ -78,51 +78,51 @@ namespace NAppProfiler.Server.Tests.Essent
                 var start = DateTime.UtcNow;
                 DateTime stop;
                 TimeSpan ts;
-                //var ts1 = TimeSpan.FromMilliseconds(300).Ticks;
-                //var insertStart = new DateTime(2011, 11, 1);
-                //var numOfRows = 2000000;
-                //var interval = (long)((DateTime.Now - insertStart).Ticks / numOfRows);
-                //var rndElapsed = new Random();
-                //for (int i = 0; i < numOfRows; i++)
-                //{
-                //    var createdDT = insertStart.AddTicks(interval * i);
-                //    var elapsed = (long)rndElapsed.Next(1, 30000);
-                //    var log = new NAppProfiler.Client.DTO.Log()
-                //    {
-                //        CIP = new byte[] { 10, 26, 10, 142 },
-                //        CrDT = createdDT,
-                //        Dtl = new List<NAppProfiler.Client.DTO.LogDetail>(),
-                //        ED = elapsed,
-                //        Err = Convert.ToBoolean(rndElapsed.Next(0, 1)),
-                //        Mtd = "Method",
-                //        Svc = "Service",
-                //    };
-                //    log.Dtl.Add(new Client.DTO.LogDetail()
-                //    {
-                //        CrDT = createdDT,
-                //        Dsc = "Description " + i.ToString(),
-                //        Ed = 100,
-                //    });
-                //    log.Dtl.Add(new Client.DTO.LogDetail()
-                //    {
-                //        CrDT = createdDT,
-                //        Dsc = "Description2 " + i.ToString(),
-                //        Ed = 100,
-                //    });
-                //    db.InsertLog(createdDT, elapsed, NAppProfiler.Client.DTO.Log.SerializeLog(log));
-                //}
-                //stop = DateTime.UtcNow;
-                //ts = stop - start;
-                //Console.WriteLine("Total Milliseconds (Insert " + numOfRows.ToString() + " Rows): " + ts.TotalMilliseconds.ToString("#,##0"));
-
-                start = DateTime.UtcNow;
-                for (int i = 1; i < 200001; i++)
+                var ts1 = TimeSpan.FromMilliseconds(300).Ticks;
+                var insertStart = new DateTime(2011, 11, 1);
+                var numOfRows = 2000000;
+                var interval = (long)((DateTime.Now - insertStart).Ticks / numOfRows);
+                var rndElapsed = new Random();
+                for (int i = 0; i < numOfRows; i++)
                 {
-                    db.RetrieveLogByIDs((long)i);
+                    var createdDT = insertStart.AddTicks(interval * i);
+                    var elapsed = (long)rndElapsed.Next(1, 30000);
+                    var log = new NAppProfiler.Client.DTO.Log()
+                    {
+                        CIP = new byte[] { 10, 26, 10, 142 },
+                        CrDT = createdDT,
+                        Dtl = new List<NAppProfiler.Client.DTO.LogDetail>(),
+                        ED = elapsed,
+                        Err = Convert.ToBoolean(rndElapsed.Next(0, 1)),
+                        Mtd = "Method",
+                        Svc = "Service",
+                    };
+                    log.Dtl.Add(new Client.DTO.LogDetail()
+                    {
+                        CrDT = createdDT,
+                        Dsc = "Description " + i.ToString(),
+                        Ed = 100,
+                    });
+                    log.Dtl.Add(new Client.DTO.LogDetail()
+                    {
+                        CrDT = createdDT,
+                        Dsc = "Description2 " + i.ToString(),
+                        Ed = 100,
+                    });
+                    db.InsertLog(createdDT, elapsed, NAppProfiler.Client.DTO.Log.SerializeLog(log));
                 }
                 stop = DateTime.UtcNow;
                 ts = stop - start;
-                Console.WriteLine("Total Milliseconds (Retrieve 200,000 Logs)" + ts.TotalMilliseconds.ToString("#,##0"));
+                Console.WriteLine("Total Milliseconds (Insert " + numOfRows.ToString() + " Rows): " + ts.TotalMilliseconds.ToString("#,##0"));
+
+                //start = DateTime.UtcNow;
+                //for (int i = 1; i < 200001; i++)
+                //{
+                //    db.RetrieveLogByIDs((long)i);
+                //}
+                //stop = DateTime.UtcNow;
+                //ts = stop - start;
+                //Console.WriteLine("Total Milliseconds (Retrieve 200,000 Logs)" + ts.TotalMilliseconds.ToString("#,##0"));
 
                 start = DateTime.UtcNow;
                 var count = db.Count(new DateTime(2011, 11, 24), new DateTime(2011, 11, 26));

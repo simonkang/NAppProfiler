@@ -16,6 +16,7 @@ namespace NAppProfiler.Server.Essent
         private readonly string databaseDirectory;
         private readonly object disposeLock;
         private readonly LogTableSchema tblSchema;
+        private readonly IndexTableSchema idxSchema;
         private JET_INSTANCE instance;
         private Session session;
         private JET_DBID dbid;
@@ -30,6 +31,7 @@ namespace NAppProfiler.Server.Essent
             databaseFullPath = Path.Combine(databaseDirectory, "NAppProfiler.edb");
             this.disposeLock = new object();
             this.tblSchema = new LogTableSchema();
+            this.idxSchema = new IndexTableSchema();
         }
 
         public void InitializeDatabase()
@@ -43,6 +45,7 @@ namespace NAppProfiler.Server.Essent
             var ret = Api.JetAttachDatabase(session, databaseFullPath, AttachDatabaseGrbit.None);
             ret = Api.JetOpenDatabase(session, databaseFullPath, null, out dbid, OpenDatabaseGrbit.None);
             tblSchema.InitializeColumnIDS(session, dbid);
+            idxSchema.InitializeColumnIDS(session, dbid);
         }
 
         void CreateDatabase()
@@ -51,6 +54,7 @@ namespace NAppProfiler.Server.Essent
             {
                 Api.JetCreateDatabase(sid, databaseFullPath, null, out dbid, CreateDatabaseGrbit.None);
                 tblSchema.Create(sid, dbid);
+                idxSchema.Create(sid, dbid);
                 Api.JetCloseDatabase(sid, dbid, CloseDatabaseGrbit.None);
             }
         }
@@ -92,7 +96,7 @@ namespace NAppProfiler.Server.Essent
             instanceParms.CreatePathIfNotExist = true;
             instanceParms.TempDirectory = Path.Combine(databaseDirectory, "temp");
             instanceParms.SystemDirectory = Path.Combine(databaseDirectory, "system");
-            instanceParms.LogFileDirectory = Path.Combine(databaseDirectory, "logs");
+            instanceParms.LogFileDirectory = Path.Combine(databaseDirectory, config.GetSetting(SettingKeys.Database_LogDirectory, "logs"));
             instanceParms.CheckpointDepthMax = 100 * 1024 * 1024;
         }
 
@@ -107,6 +111,10 @@ namespace NAppProfiler.Server.Essent
                 if (tblSchema != null)
                 {
                     tblSchema.Dispose();
+                }
+                if (idxSchema != null)
+                {
+                    idxSchema.Dispose();
                 }
                 if (session != null)
                 {
@@ -136,7 +144,7 @@ namespace NAppProfiler.Server.Essent
         //TODO: Use LogEntity for Testing - Need to change to BSON object in Client Library
         public long? InsertLog(DateTime createdDateTime, long elapsed, byte[] data)
         {
-            return tblSchema.InsertLog(session, createdDateTime, elapsed, data);
+            return tblSchema.InsertLog(session, idxSchema, createdDateTime, elapsed, data);
         }
 
         public IList<LogEntity> RetrieveLogByIDs(params long[] ids)

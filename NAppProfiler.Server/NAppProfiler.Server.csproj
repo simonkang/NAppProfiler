@@ -60,8 +60,10 @@
     <Compile Include="Configuration\ConfigManager.cs" />
     <Compile Include="Configuration\SettingKeys.cs" />
     <Compile Include="Essent\Database.cs" />
+    <Compile Include="Essent\IndexTableSchema.cs" />
     <Compile Include="Essent\LogEntity.cs" />
     <Compile Include="Essent\LogTableSchema.cs" />
+    <Compile Include="Index\Updater.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

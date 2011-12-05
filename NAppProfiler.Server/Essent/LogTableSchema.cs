@@ -83,19 +83,20 @@ namespace NAppProfiler.Server.Essent
         }
 
         //TODO: Transactions can not be used on multiple threads (shared session)
-        public long? InsertLog(JET_SESID session, DateTime createdDateTime, long elapsed, byte[] data)
+        public long InsertLog(JET_SESID session, IndexTableSchema idxSchema, DateTime createdDateTime, long elapsed, byte[] data)
         {
-            long? ret = 0;
+            long ret = 0;
             using (var tran = new Transaction(session))
             {
                 using (var updt = new Update(session, logTable, JET_prep.Insert))
                 {
-                    ret = Api.RetrieveColumnAsInt64(session, logTable, colID_ID, RetrieveColumnGrbit.RetrieveCopy);
+                    ret = (long)Api.RetrieveColumnAsInt64(session, logTable, colID_ID, RetrieveColumnGrbit.RetrieveCopy);
                     Api.SetColumn(session, logTable, colID_Created, createdDateTime.Ticks);
                     Api.SetColumn(session, logTable, colID_Elapsed, elapsed);
                     Api.SetColumn(session, logTable, colID_Data, data);
                     updt.Save();
                 }
+                idxSchema.InsertIndexRow(session, tran, ret);
                 tran.Commit(CommitTransactionGrbit.LazyFlush);
             }
             return ret;
