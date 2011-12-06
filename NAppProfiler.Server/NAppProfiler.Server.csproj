@@ -63,6 +63,8 @@
     <Compile Include="Essent\IndexTableSchema.cs" />
     <Compile Include="Essent\LogEntity.cs" />
     <Compile Include="Essent\LogTableSchema.cs" />
+    <Compile Include="Index\FieldKeys.cs" />
+    <Compile Include="Index\NAppIndexReader.cs" />
     <Compile Include="Index\NAppIndexUpdater.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

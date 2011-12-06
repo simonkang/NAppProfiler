@@ -186,5 +186,17 @@ namespace NAppProfiler.Server.Essent
                 tran.Commit(CommitTransactionGrbit.LazyFlush);
             }
         }
+
+        public void AddAllLogsToReindex()
+        {
+            var curData = GetLogsToIndex(50);
+            while (curData.Count > 0)
+            {
+                var deleteIdx = curData.Select(i => i.Item1).ToArray();
+                DeleteIndexRows(deleteIdx);
+                curData = GetLogsToIndex(50);
+            }
+            tblSchema.ReAddAllLogsToIndex(session, idxSchema);
+        }
     }
 }

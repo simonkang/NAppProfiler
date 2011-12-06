@@ -81,7 +81,7 @@ namespace NAppProfiler.Server.Tests.Essent
                 TimeSpan ts;
                 var ts1 = TimeSpan.FromMilliseconds(300).Ticks;
                 var insertStart = new DateTime(2011, 11, 1);
-                var numOfRows = 2000000;
+                var numOfRows = 500000;
                 var interval = (long)((DateTime.Now - insertStart).Ticks / numOfRows);
                 var rndElapsed = new Random();
                 for (int i = 0; i < numOfRows; i++)

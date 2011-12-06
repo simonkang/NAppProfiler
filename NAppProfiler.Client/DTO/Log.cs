@@ -47,6 +47,12 @@ namespace NAppProfiler.Client.DTO
         /// </summary>
         public IList<LogDetail> Dtl { get; set; }
 
+        public Log()
+        {
+            this.CIP = new byte[4];
+            this.SIP = new byte[4];
+        }
+
         [OnSerializing]
         internal void OnSerializingMethod(StreamingContext context)
         {

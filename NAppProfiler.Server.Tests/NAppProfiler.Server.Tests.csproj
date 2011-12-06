@@ -57,6 +57,7 @@
   <ItemGroup>
     <Compile Include="Configuration\ConfigManagerTests.cs" />
     <Compile Include="Essent\DatabaseTests.cs" />
+    <Compile Include="Index\NAppIndexReaderTests.cs" />
     <Compile Include="Index\NAppIndexUpdaterTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

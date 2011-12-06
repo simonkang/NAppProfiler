@@ -150,5 +150,35 @@ namespace NAppProfiler.Server.Essent
             }
             return ret;
         }
+
+        public long ReAddAllLogsToIndex(JET_SESID session, IndexTableSchema idxSchema)
+        {
+            var ret = 0L;
+            Transaction tran = new Transaction(session);
+            try
+            {
+                var tranCount = 0;
+                Api.MoveBeforeFirst(session, logTable);
+                while (Api.TryMoveNext(session, logTable))
+                {
+                    var curLogId = (long)Api.RetrieveColumnAsInt64(session, logTable, colID_ID);
+                    idxSchema.InsertIndexRow(session, tran, curLogId);
+                    tranCount++;
+                    ret++;
+                    if (tranCount >= 50)
+                    {
+                        tran.Commit(CommitTransactionGrbit.LazyFlush);
+                        tran.Dispose();
+                        tran = new Transaction(session);
+                    }
+                }
+                tran.Commit(CommitTransactionGrbit.LazyFlush);
+            }
+            finally
+            {
+                tran.Dispose();
+            }
+            return ret;
+        }
     }
 }
