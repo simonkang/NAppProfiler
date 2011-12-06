@@ -27,7 +27,7 @@ namespace NAppProfiler.Server.Essent
         public Database(ConfigManager config)
         {
             this.config = config;
-            databaseDirectory = GetDatabaseDirectory();
+            databaseDirectory = Path.GetFullPath(GetDatabaseDirectory());
             databaseFullPath = Path.Combine(databaseDirectory, "NAppProfiler.edb");
             this.disposeLock = new object();
             this.tblSchema = new LogTableSchema();
@@ -168,6 +168,23 @@ namespace NAppProfiler.Server.Essent
             Api.JetGetDatabaseInfo(session, dbid, out sizePages, JET_DbInfo.SpaceOwned);
             long sizeBytes = ((long)sizePages) * SystemParameters.DatabasePageSize;
             return sizeBytes;
+        }
+
+        public IList<Tuple<long, long>> GetLogsToIndex(int count)
+        {
+            return idxSchema.GetLogsToIndex(session, count);
+        }
+
+        public void DeleteIndexRows(params long[] ids)
+        {
+            using (var tran = new Transaction(session))
+            {
+                for (int i = 0; i < ids.Length; i++)
+                {
+                    idxSchema.DeleteIndexRow(session, tran, ids[i]);
+                }
+                tran.Commit(CommitTransactionGrbit.LazyFlush);
+            }
         }
     }
 }

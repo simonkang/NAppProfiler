@@ -57,6 +57,7 @@
   <ItemGroup>
     <Compile Include="Configuration\ConfigManagerTests.cs" />
     <Compile Include="Essent\DatabaseTests.cs" />
+    <Compile Include="Index\NAppIndexUpdaterTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -65,9 +66,7 @@
     </None>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Index\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <ProjectReference Include="..\NAppProfiler.Client\NAppProfiler.Client.csproj">
       <Project>{BBECB4DE-81A9-48CB-9A28-8FC9D3EA1BDD}</Project>

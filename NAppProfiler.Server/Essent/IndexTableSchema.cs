@@ -68,5 +68,32 @@ namespace NAppProfiler.Server.Essent
                 updt.Save();
             }
         }
+
+        public IList<Tuple<long, long>> GetLogsToIndex(JET_SESID session, int count)
+        {
+            var ret = new List<Tuple<long,long>>();
+            Api.MoveBeforeFirst(session, indexTable);
+            while (Api.TryMoveNext(session, indexTable))
+            {
+                long id = (long)Api.RetrieveColumnAsInt64(session, indexTable, colID_ID);
+                long logId = (long)Api.RetrieveColumnAsInt64(session, indexTable, colID_LogID);
+                ret.Add(Tuple.Create<long, long>(id, logId));
+                if (ret.Count >= count)
+                {
+                    break;
+                }
+            }
+            return ret;
+        }
+
+        public void DeleteIndexRow(JET_SESID session, Transaction tran, long id)
+        {
+            Api.JetSetCurrentIndex(session, indexTable, idxName_Primary);
+            Api.MakeKey(session, indexTable, id, MakeKeyGrbit.NewKey);
+            if (Api.TrySeek(session, indexTable, SeekGrbit.SeekEQ))
+            {
+                Api.JetDelete(session, indexTable);
+            }
+        }
     }
 }

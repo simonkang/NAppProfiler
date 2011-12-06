@@ -63,14 +63,19 @@
     <Compile Include="Essent\IndexTableSchema.cs" />
     <Compile Include="Essent\LogEntity.cs" />
     <Compile Include="Essent\LogTableSchema.cs" />
-    <Compile Include="Index\Updater.cs" />
+    <Compile Include="Index\NAppIndexUpdater.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\NAppProfiler.Client\NAppProfiler.Client.csproj">
+      <Project>{BBECB4DE-81A9-48CB-9A28-8FC9D3EA1BDD}</Project>
+      <Name>NAppProfiler.Client</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -23,9 +23,13 @@ namespace NAppProfiler.Client.DTO
         /// </summary>
         public string Mtd { get; set; }
         /// <summary>
-        /// Client IP Addres
+        /// Client IP Address
         /// </summary>
         public byte[] CIP { get; set; }
+        /// <summary>
+        /// Server IP Address
+        /// </summary>
+        public byte[] SIP { get; set; }
         /// <summary>
         /// Exception Occurred
         /// </summary>
