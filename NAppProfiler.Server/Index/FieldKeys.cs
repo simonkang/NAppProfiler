@@ -8,6 +8,7 @@ namespace NAppProfiler.Server.Index
     class FieldKeys
     {
         public const string LogID = "LogID";
+        public const string LogName = "LogName";
         public const string Service = "Service";
         public const string Method = "Method";
         public const string ClientIP = "ClientIP";
@@ -16,6 +17,7 @@ namespace NAppProfiler.Server.Index
         public const string CreatedDT = "CreatedDT";
         public const string Elapsed = "Elapsed";
         public const string DetailDesc = "DetailDesc";
+        public const string DetailElapsed = "DetailElapsed";
         public const string Parms = "Parms";
     }
 }

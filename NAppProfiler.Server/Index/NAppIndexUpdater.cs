@@ -21,6 +21,7 @@ namespace NAppProfiler.Server.Index
 
         private Document doc;
         private NumericField fLogID;
+        private Field fLogName;
         private Field fSvc;
         private Field fMethod;
         private Field fClientIP;
@@ -28,8 +29,13 @@ namespace NAppProfiler.Server.Index
         private NumericField fException;
         private NumericField fCreated;
         private NumericField fElapsed;
-        private Field fDetailDescription;
-        private Field fParameterValue; 
+        private Field fDesc;
+        private Field fParms;
+
+        private Document docDetail;
+        private NumericField fDtl_LogID;
+        private Field fDtl_LogName;
+        private NumericField fDtl_Elapsed;
 
         public NAppIndexUpdater(Configuration.ConfigManager config)
         {
@@ -42,15 +48,17 @@ namespace NAppProfiler.Server.Index
         private void InitializeDocumentCache()
         {
             doc = new Document();
-            fLogID = new NumericField(FieldKeys.LogID, 8, Field.Store.YES, false);
+            fLogID = new NumericField(FieldKeys.LogID, 8, Field.Store.YES, true);
             doc.Add(fLogID);
-            fSvc = new Field(FieldKeys.Service, string.Empty, Field.Store.NO, Field.Index.ANALYZED);
+            fLogName = new Field(FieldKeys.LogName, string.Empty, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+            doc.Add(fLogName);
+            fSvc = new Field(FieldKeys.Service, string.Empty, Field.Store.NO, Field.Index.ANALYZED_NO_NORMS);
             doc.Add(fSvc);
-            fMethod = new Field(FieldKeys.Method, string.Empty, Field.Store.NO, Field.Index.ANALYZED);
+            fMethod = new Field(FieldKeys.Method, string.Empty, Field.Store.NO, Field.Index.ANALYZED_NO_NORMS);
             doc.Add(fMethod);
-            fClientIP = new Field(FieldKeys.ClientIP, string.Empty, Field.Store.NO, Field.Index.NOT_ANALYZED);
+            fClientIP = new Field(FieldKeys.ClientIP, string.Empty, Field.Store.NO, Field.Index.NOT_ANALYZED_NO_NORMS);
             doc.Add(fClientIP);
-            fServerIP = new Field(FieldKeys.ServerIP, string.Empty, Field.Store.NO, Field.Index.NOT_ANALYZED);
+            fServerIP = new Field(FieldKeys.ServerIP, string.Empty, Field.Store.NO, Field.Index.NOT_ANALYZED_NO_NORMS);
             doc.Add(fServerIP);
             fException = new NumericField(FieldKeys.Exception, 1, Field.Store.NO, true);
             doc.Add(fException);
@@ -58,17 +66,23 @@ namespace NAppProfiler.Server.Index
             doc.Add(fCreated);
             fElapsed = new NumericField(FieldKeys.Elapsed, 8, Field.Store.NO, true);
             doc.Add(fElapsed);
-            fDetailDescription = new Field(FieldKeys.DetailDesc, string.Empty, Field.Store.NO, Field.Index.ANALYZED);
-            doc.Add(fDetailDescription);
-            fParameterValue = new Field(FieldKeys.Parms, string.Empty, Field.Store.NO, Field.Index.ANALYZED);
-            doc.Add(fParameterValue);
+            fDesc = new Field(FieldKeys.DetailDesc, string.Empty, Field.Store.NO, Field.Index.ANALYZED_NO_NORMS);
+            doc.Add(fDesc);
+            fParms = new Field(FieldKeys.Parms, string.Empty, Field.Store.NO, Field.Index.ANALYZED_NO_NORMS);
+            doc.Add(fParms);
+
+            docDetail = new Document();
+            fDtl_LogID = new NumericField(FieldKeys.LogID, 8, Field.Store.YES, true);
+            docDetail.Add(fDtl_LogID);
+            fDtl_LogName = new Field(FieldKeys.LogName, string.Empty, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+            docDetail.Add(fDtl_LogName);
+            fDtl_Elapsed = new NumericField(FieldKeys.DetailElapsed, 8, Field.Store.NO, true);
+            docDetail.Add(fDtl_Elapsed);
         }
 
         public void Initialize()
         {
-            writer = new IndexWriter(directory, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29), IndexWriter.MaxFieldLength.UNLIMITED);
-            writer.SetRAMBufferSizeMB(48);
-            writer.SetMergeFactor(100);
+            SetIndexWriter();
             InitializeDocumentCache();
             db.InitializeDatabase();
         }
@@ -103,13 +117,30 @@ namespace NAppProfiler.Server.Index
         public long RebuildIndex()
         {
             long ret = 0;
-            writer.Dispose();
-            writer = new IndexWriter(directory, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29), true, IndexWriter.MaxFieldLength.UNLIMITED);
-            writer.SetRAMBufferSizeMB(48);
-            writer.SetMergeFactor(100);
+            SetIndexWriter(true);
             db.AddAllLogsToReindex();
             ret = UpdateIndex();
             return ret;
+        }
+
+        void SetIndexWriter(bool reWrite = false)
+        {
+            if (writer != null)
+            {
+                writer.Commit();
+                writer.Dispose();
+            }
+            var analyzer = new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29);
+            if (reWrite)
+            {
+                writer = new IndexWriter(directory, analyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
+            }
+            else
+            {
+                writer = new IndexWriter(directory, analyzer, IndexWriter.MaxFieldLength.UNLIMITED);
+            }
+            writer.SetRAMBufferSizeMB(48);
+            writer.SetMergeFactor(100);
         }
 
         void AddDocumentToIndex(long id, byte[] data)
@@ -131,7 +162,6 @@ namespace NAppProfiler.Server.Index
                 for (int x = 0; x < log.Dtl.Count; x++)
                 {
                     var curDtl = log.Dtl[x];
-                    desc.Append(curDtl.Dsc + " ");
                     if (curDtl.Ps != null)
                     {
                         for (int y = 0; y < curDtl.Ps.Count; y++)
@@ -139,14 +169,13 @@ namespace NAppProfiler.Server.Index
                             parms.Append(curDtl.Ps[y].Val + " ");
                         }
                     }
+                    desc.Append(curDtl.Dsc + " ");
+                    fDtl_LogID.SetLongValue(id);
+                    fDtl_Elapsed.SetLongValue(curDtl.Ed);
+                    writer.AddDocument(docDetail);
                 }
-                fDetailDescription.SetValue(desc.ToString());
-                fParameterValue.SetValue(parms.ToString());
-            }
-            else
-            {
-                fDetailDescription.SetValue(string.Empty);
-                fParameterValue.SetValue(string.Empty);
+                fDesc.SetValue(desc.ToString());
+                fParms.SetValue(parms.ToString());
             }
             writer.AddDocument(doc);
         }
