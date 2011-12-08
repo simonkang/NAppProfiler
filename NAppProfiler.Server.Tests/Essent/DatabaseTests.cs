@@ -81,7 +81,7 @@ namespace NAppProfiler.Server.Tests.Essent
                 TimeSpan ts;
                 var ts1 = TimeSpan.FromMilliseconds(300).Ticks;
                 var insertStart = new DateTime(2011, 11, 1);
-                var numOfRows = 500000;
+                var numOfRows = 50000;
                 var interval = (long)((DateTime.Now - insertStart).Ticks / numOfRows);
                 var rndElapsed = new Random();
                 for (int i = 0; i < numOfRows; i++)
@@ -116,14 +116,15 @@ namespace NAppProfiler.Server.Tests.Essent
                 ts = stop - start;
                 Console.WriteLine("Total Milliseconds (Insert " + numOfRows.ToString() + " Rows): " + ts.TotalMilliseconds.ToString("#,##0"));
 
-                //start = DateTime.UtcNow;
-                //for (int i = 1; i < 200001; i++)
-                //{
-                //    db.RetrieveLogByIDs((long)i);
-                //}
-                //stop = DateTime.UtcNow;
-                //ts = stop - start;
-                //Console.WriteLine("Total Milliseconds (Retrieve 200,000 Logs)" + ts.TotalMilliseconds.ToString("#,##0"));
+                start = DateTime.UtcNow;
+                for (int i = 1; i < 200001; i++)
+                {
+                    var log = db.RetrieveLogByIDs((long)i);
+                    var logDe = NAppProfiler.Client.DTO.Log.DeserializeLog(log[0].Data);
+                }
+                stop = DateTime.UtcNow;
+                ts = stop - start;
+                Console.WriteLine("Total Milliseconds (Retrieve 200,000 Logs)" + ts.TotalMilliseconds.ToString("#,##0"));
 
                 start = DateTime.UtcNow;
                 var count = db.Count(new DateTime(2011, 11, 24), new DateTime(2011, 11, 26));
