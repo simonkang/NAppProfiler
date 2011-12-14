@@ -26,7 +26,10 @@ namespace NAppProfiler.Server.Index
             indexFullPath = config.GetSetting(SettingKeys.Index_Directory, System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Index"));
             indexFullPath = System.IO.Path.GetFullPath(indexFullPath);
             directory = FSDirectory.Open(new System.IO.DirectoryInfo(indexFullPath));
+            var dt = DateTime.UtcNow;
             searcher = new IndexSearcher(directory, true);
+            var dt2 = DateTime.UtcNow;
+            var ts = dt2 - dt;
 
             var sortFields = new SortField[2];
             sortFields[0] = new SortField(FieldKeys.LogName, SortField.STRING);

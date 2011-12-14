@@ -24,10 +24,18 @@ namespace NAppProfiler.Server.Essent
 
         public string DatabaseFullPath { get { return databaseFullPath; } }
 
-        public Database(ConfigManager config)
+        public Database(ConfigManager config, string directory = "")
         {
             this.config = config;
             databaseDirectory = Path.GetFullPath(GetDatabaseDirectory());
+            if (string.IsNullOrWhiteSpace(directory))
+            {
+                databaseDirectory = Path.Combine(databaseDirectory, "current");
+            }
+            else
+            {
+                databaseDirectory = Path.Combine(databaseDirectory, directory);
+            }
             databaseFullPath = Path.Combine(databaseDirectory, "NAppProfiler.edb");
             this.disposeLock = new object();
             this.tblSchema = new LogTableSchema();

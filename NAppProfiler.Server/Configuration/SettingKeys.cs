@@ -13,5 +13,10 @@ namespace NAppProfiler.Server.Configuration
         public static string Database_LogDirectory { get { return "Database_LogDirectory"; } }
 
         public static string Index_Directory { get { return "Index_Directory"; } }
+
+        public static string Manager_MaxTasks { get { return "Manager_MaxTasks"; } }
+        public static string Manager_QueueSize { get { return "Manager_QueueSize"; } }
+
+        public static string Trace_Logging { get { return "Trace_Logging"; } }
     }
 }

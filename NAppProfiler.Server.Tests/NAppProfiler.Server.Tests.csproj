@@ -59,6 +59,7 @@
     <Compile Include="Essent\DatabaseTests.cs" />
     <Compile Include="Index\NAppIndexReaderTests.cs" />
     <Compile Include="Index\NAppIndexUpdaterTests.cs" />
+    <Compile Include="Manager\JobQueueManagerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

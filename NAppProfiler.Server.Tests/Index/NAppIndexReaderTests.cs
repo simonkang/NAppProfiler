@@ -19,5 +19,11 @@ namespace NAppProfiler.Server.Tests.Index
                 reader.Search();
             }
         }
+
+        [Test]
+        public void PerfTest()
+        {
+            //System.Threading.Thread.VolatileRead
+        }
     }
 }
