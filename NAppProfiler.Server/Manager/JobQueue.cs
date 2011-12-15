@@ -12,11 +12,12 @@ namespace NAppProfiler.Server.Manager
         private readonly int maxSize;
         private readonly bool traceEnabled;
 
-        private int curIn;
-        private int curOut;
+        private long curIn;
+        private long curOut;
 
         private long addCounter;
         private long dequeueCounter;
+        private long spinAddCounter;
 
         public long AddCounter { get { return addCounter; } }
         public long DequeueCounter { get { return dequeueCounter; } }
@@ -34,12 +35,10 @@ namespace NAppProfiler.Server.Manager
         public JobItem Dequeue()
         {
             curOut++;
-            if (curOut >= maxSize)
-            {
-                curOut = 0;
-            }
-            var ret = items[curOut];
-            items[curOut] = null;
+            var localCurOut = curOut;
+            var index = localCurOut % maxSize;
+            var ret = items[index];
+            items[index] = null;
             if (traceEnabled)
             {
                 Interlocked.Increment(ref dequeueCounter);
@@ -48,52 +47,33 @@ namespace NAppProfiler.Server.Manager
         }
 
         // Single Threaded in Retrieve
-        public int Size()
+        public long Size()
         {
             var localCurIn = curIn;
             var localCurOut = curOut;
-            if (localCurIn < localCurOut)
-            {
-                return (localCurIn + maxSize - localCurOut);
-            }
-            else
-            {
-                return localCurIn - localCurOut;
-            }
+            return localCurIn - localCurOut;
         }
 
         public void Add(JobItem item)
         {
-            var index = NextInsertIndex();
-            if (index == curOut)
+            var localCurIn = curIn;
+            var localCurOut = curOut;
+            var localSize = localCurIn - localCurOut + 1;
+            if (localSize > maxSize)
             {
-                Thread.Yield();
-                SpinWait.SpinUntil(() => false, 50);
+                SpinWait.SpinUntil(() => Size() < maxSize - 1);
+                if (traceEnabled)
+                {
+                    Interlocked.Increment(ref spinAddCounter);
+                }
             }
+            localCurIn = Interlocked.Increment(ref curIn);
+            var index = localCurIn % maxSize;
             items[index] = item;
             if (traceEnabled)
             {
                 Interlocked.Increment(ref addCounter);
             }
-        }
-
-        int NextInsertIndex()
-        {
-            var newIn = Interlocked.Increment(ref curIn);
-            if (newIn >= maxSize)
-            {
-                // Try to reset index to 0;
-                if (Interlocked.CompareExchange(ref curIn, 0, newIn) == newIn)
-                {
-                    newIn = 0;
-                }
-                else
-                {
-                    // If already reset by another thread, then just increment
-                    newIn = Interlocked.Increment(ref curIn);
-                }
-            }
-            return newIn;
         }
     }
 }

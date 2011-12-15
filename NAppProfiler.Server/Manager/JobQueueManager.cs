@@ -15,7 +15,7 @@ namespace NAppProfiler.Server.Manager
         private readonly ConfigManager config;
         private readonly bool traceEnabled;
         
-        private Thread[] tasks;
+        private Task[] tasks;
         private int[] taskRunning;
         private JobQueue[] queues;
         private Job databaseJob;
@@ -39,7 +39,7 @@ namespace NAppProfiler.Server.Manager
         public void Initialize()
         {
             int maxTasks = GetMaxNumberOfTasks();
-            tasks = new Thread[maxTasks];
+            tasks = new Task[maxTasks];
             queues = new JobQueue[maxTasks];
             taskRunning = new int[maxTasks];
 
@@ -53,11 +53,7 @@ namespace NAppProfiler.Server.Manager
         void InitializeTasks()
         {
             var dbQueue = queues[0];
-            //var dbTask = Task.Factory.StartNew(() => databaseJob.Start(dbQueue, true), TaskCreationOptions.LongRunning);
-            var dbStart = new ThreadStart(new Action(() => databaseJob.Start(dbQueue, true)));
-            var dbTask = new Thread(dbStart);
-            dbTask.Priority = ThreadPriority.Highest;
-            dbTask.Start();
+            var dbTask = Task.Factory.StartNew(() => databaseJob.Start(dbQueue, true), TaskCreationOptions.LongRunning);
             tasks[0] = dbTask;
             taskRunning[0] = 1;
             curNumberRunningTasks = 1;
@@ -81,7 +77,7 @@ namespace NAppProfiler.Server.Manager
         {
             if (!Int32.TryParse(config.GetSetting(SettingKeys.Manager_QueueSize), out queueSize))
             {
-                queueSize = 256;
+                queueSize = 1024;
             }
             whenToStartNewTask = Math.Min((int)(queueSize * 0.5), 50);
             for (int i = 0; i < queues.Length; i++)
@@ -162,7 +158,8 @@ namespace NAppProfiler.Server.Manager
                         var localTask = Task.Factory.StartNew(
                             () => indexJob.Start(localQueue, false))
                             .ContinueWith(t => OnTaskStopping(t, localIndex));
-                        taskRunning[i] = 1;
+                        taskRunning[localIndex] = 1;
+                        tasks[localIndex] = localTask;
                         curNumberRunningTasks++;
                         break;
                     }
@@ -197,7 +194,8 @@ namespace NAppProfiler.Server.Manager
             {
                 if (tasks[i] != null)
                 {
-                    tasks[i].Join(5000);
+                    tasks[i].Wait(5000);
+                    tasks[i].Dispose();
                 }
             }
             if (databaseJob != null)

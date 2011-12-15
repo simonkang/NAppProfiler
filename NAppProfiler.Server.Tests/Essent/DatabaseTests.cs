@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.Isam.Esent.Interop;
 using NUnit.Framework;
+using NUnit.Framework.Constraints;
 using NAppProfiler.Server.Configuration;
 using NAppProfiler.Server.Essent;
 
@@ -21,11 +22,12 @@ namespace NAppProfiler.Server.Tests.Essent
         [Test]
         public void GetDatabaseDefaultDirectory()
         {
-            var expected = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DB");
+            var expected = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "DB", "current"));
             using (var db = new Database(new ConfigManager()))
             {
                 var filePath = db.GetDatabaseDirectory();
-                Assert.AreEqual(filePath, expected);
+                Assert.That(filePath, Is.EqualTo(expected));
+                //Assert.AreEqual(filePath, expected);
             }
         }
 
@@ -39,7 +41,7 @@ namespace NAppProfiler.Server.Tests.Essent
                     Directory.Delete(db.GetDatabaseDirectory(), true);
                 }
                 db.InitializeDatabase();
-                Assert.IsTrue(File.Exists(db.DatabaseFullPath));
+                Assert.That(File.Exists(db.DatabaseFullPath));
                 db.InsertLog(DateTime.Now, TimeSpan.FromMilliseconds(300).Ticks, new byte[] { 4, 4, 4 });
             }
         }
@@ -51,8 +53,8 @@ namespace NAppProfiler.Server.Tests.Essent
             {
                 db.InitializeDatabase();
                 var id = db.InsertLog(DateTime.Now, TimeSpan.FromMilliseconds(300).Ticks, new byte[] { 3, 30, 255 });
-                Assert.IsNotNull(id);
-                Assert.AreNotEqual(0, id);
+                Assert.That(id, Is.Not.Null);
+                Assert.That(id, Is.Not.LessThanOrEqualTo(0));
             }
         }
 
