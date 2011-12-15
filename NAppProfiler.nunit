@@ -1,5 +1,5 @@
 ﻿<NUnitProject>
-  <Settings activeconfig="Release" />
+  <Settings activeconfig="Debug" />
   <Config name="Debug" binpathtype="Auto">
     <assembly path="NAppProfiler.Server.Tests\bin\Debug\NAppProfiler.Server.Tests.dll" />
     <assembly path="NAppProfiler.Client.Tests\bin\Debug\NAppProfiler.Client.Tests.dll" />

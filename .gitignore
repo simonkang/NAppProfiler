@@ -4,5 +4,6 @@
 *.user
 TestResult.xml
 *.VisualState.xml
-[Dd][Bb]
-/[Ii]ndex
+/[Dd][Bb]/
+/[Ii]ndex/
+packages/
