@@ -72,6 +72,7 @@
     <Compile Include="Manager\JobItem.cs" />
     <Compile Include="Manager\JobQueue.cs" />
     <Compile Include="Manager\JobQueueManager.cs" />
+    <Compile Include="Manager\WaitEventArgs.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

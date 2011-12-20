@@ -10,7 +10,7 @@ namespace NAppProfiler.Server.Manager
 {
     public class JobQueueManager : IDisposable
     {
-        private static object startJobLock = new object();
+        private static object startJobLock;
 
         private readonly ConfigManager config;
         private readonly bool traceEnabled;
@@ -24,8 +24,12 @@ namespace NAppProfiler.Server.Manager
         private int curNumberRunningTasks;
         private int queueSize;
 
+        // Used for Trace and Performance Tests
         private long addDBCounter;
         private long addIndexCounter;
+        private Dictionary<Guid, long> processCounts;
+        private long totalProcessCount;
+        private object totalProcessCountLock;
 
         public JobQueueManager(ConfigManager config)
         {
@@ -34,7 +38,13 @@ namespace NAppProfiler.Server.Manager
             {
                 traceEnabled = false;
             }
+            startJobLock = new object();
+            totalProcessCountLock = new object();
         }
+
+        public event EventHandler EmptyQueue;
+
+        public long TotalProcessCount { get { return totalProcessCount; } }
 
         public void Initialize()
         {
@@ -43,11 +53,49 @@ namespace NAppProfiler.Server.Manager
             queues = new JobQueue[maxTasks];
             taskRunning = new int[maxTasks];
 
-            databaseJob = new Job(config, true);
-            indexJob = new Job(config, false);
+            databaseJob = new Job(config, true, traceEnabled);
+            indexJob = new Job(config, false, traceEnabled);
 
             InitializeQueues();
             InitializeTasks();
+
+            if (traceEnabled)
+            {
+                processCounts = new Dictionary<Guid, long>();
+                for (int i = 0; i < queues.Length; i++)
+                {
+                    processCounts.Add(queues[i].ID, 0);
+                }
+                databaseJob.Waiting += new EventHandler<WaitEventArgs>(Job_Waiting);
+                indexJob.Waiting += new EventHandler<WaitEventArgs>(Job_Waiting);
+            }
+        }
+
+        void Job_Waiting(object sender, WaitEventArgs e)
+        {
+            var curCount = processCounts[e.QueueID];
+            if (curCount != e.ProcessCount)
+            {
+                lock (totalProcessCountLock)
+                {
+                    processCounts[e.QueueID] = e.ProcessCount;
+                    totalProcessCount = processCounts.Aggregate(0L, (total, pc) => total + (long)pc.Value);
+                }
+                if (EmptyQueue != null)
+                {
+                    var curQueueSize = CurrentQueueSize();
+                    if (curQueueSize == 0)
+                    {
+                        EmptyQueue(this, EventArgs.Empty);
+                    }
+                }
+            }
+        }
+
+        public long CurrentQueueSize()
+        {
+            var ret = queues.Aggregate(0L, (total, q) => total + q.Size());
+            return ret;
         }
 
         void InitializeTasks()
@@ -175,6 +223,16 @@ namespace NAppProfiler.Server.Manager
                 curNumberRunningTasks--;
                 t.Dispose();
                 tasks[index] = null;
+                if (traceEnabled)
+                {
+                    lock (totalProcessCountLock)
+                    {
+                        var curId = queues[index].ID;
+                        var curCount = processCounts[curId];
+                        processCounts[curId] = 0;
+                        processCounts.Add(Guid.NewGuid(), curCount);
+                    }
+                }
             }
             // Queue must be empty
             System.Diagnostics.Debug.Assert(queues[index].Size() == 0);

@@ -12,11 +12,6 @@ namespace NAppProfiler.Server.Essent
         private readonly TimeSpan elapsed;
         private readonly byte[] data;
 
-        public long ID { get { return id; } }
-        public DateTime CreatedDateTime { get { return createdDateTime; } }
-        public TimeSpan Elapsed { get { return elapsed; } }
-        public byte[] Data { get { return data; } }
-
         public LogEntity(DateTime createdDateTime, TimeSpan elapsed, byte[] data)
         {
             this.createdDateTime = createdDateTime;
@@ -31,5 +26,10 @@ namespace NAppProfiler.Server.Essent
             this.elapsed = elapsed;
             this.data = data;
         }
+
+        public long ID { get { return id; } }
+        public DateTime CreatedDateTime { get { return createdDateTime; } }
+        public TimeSpan Elapsed { get { return elapsed; } }
+        public byte[] Data { get { return data; } }
     }
 }

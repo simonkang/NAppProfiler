@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using NUnit.Framework;
 using NUnit.Framework.Constraints;
 using NAppProfiler.Server.Configuration;
@@ -12,52 +13,97 @@ namespace NAppProfiler.Server.Tests.Manager
     [TestFixture]
     class JobQueueManagerTests
     {
-        [Test]
-        public void InitializeJobQueueManagerTest()
-        {
-            using (var q = new JobQueueManager(new ConfigManager()))
-            {
-                q.Initialize();
+        private ManualResetEventSlim mre;
+        private JobQueueManager queueMgr;
 
-                var testSize = 10000000; // 5 million
-                var jobItems = new JobItem[testSize];
-                for (int i = 0; i < testSize; i++)
-                {
-                    jobItems[i] = new JobItem();
-                }
-                for (int i = 0; i < testSize; i++)
-                {
-                    q.AddDatabaseJob(jobItems[i]);
-                }
-                System.Threading.Thread.Sleep(10000);
-                System.Threading.Thread.Sleep(60000);
-            }
+        [SetUp]
+        public void BeforeTest()
+        {
+            queueMgr = new JobQueueManager(new ConfigManager());
+            queueMgr.EmptyQueue += new EventHandler(queueMgr_EmptyQueue);
+            queueMgr.Initialize();
+            mre = new ManualResetEventSlim();
+        }
+
+        [TearDown]
+        public void AfterTest()
+        {
+            queueMgr.Dispose();
+            mre.Dispose();
         }
 
         [Test]
-        public void TT()
+        public void RunPerfTest_Sync()
         {
-            var testSize = 100000000;
-            var jobitems = new JobItem[testSize];
+            RunTest(false);            
+        }
 
-            var dt1 = DateTime.UtcNow;
+        [Test]
+        public void RunPerfTest_Parallel()
+        {
+            RunTest(true);
+        }
+
+        void RunTest(bool parallel)
+        {
+            var testSize = 10000000; // 10 million
+            var items = new JobItem[testSize];
             for (int i = 0; i < testSize; i++)
             {
-                jobitems[i] = null;
+                items[i] = new JobItem();
+            }
+            var dt1 = DateTime.UtcNow;
+            if (parallel)
+            {
+                RunParallel(items);
+            }
+            else
+            {
+                RunSync(items);
+            }
+            var localProcessCount = queueMgr.TotalProcessCount;
+            while (localProcessCount != testSize && queueMgr.CurrentQueueSize() > 0)
+            {
+                mre.Reset();
+                mre.Wait(TimeSpan.FromSeconds(5));
+                localProcessCount = queueMgr.TotalProcessCount;
             }
             var dt2 = DateTime.UtcNow;
-            var ts1 = dt2 - dt1;
-            Console.WriteLine(ts1.ToString());
-
-            var testSizeL = (long)testSize;
-            dt1 = DateTime.UtcNow;
-            for (long i = 0; i < testSizeL; i++)
+            var ts = dt2 - dt1;
+            var unProcessedCount = 0;
+            for (int i = 0; i < testSize; i++)
             {
-                jobitems[i] = null;
+                if (!items[i].Processed)
+                {
+                    unProcessedCount++;
+                }
+                items[i] = null;
             }
-            dt2 = DateTime.UtcNow;
-            var ts2 = dt2 - dt1;
-            Console.WriteLine(ts2.ToString());
+            Console.WriteLine("Parallel: " + parallel.ToString());
+            Console.WriteLine(ts.ToString() + " " + unProcessedCount.ToString());
+            var itemsPerSecond = (testSize / ts.TotalMilliseconds) * 1000D;
+            Console.WriteLine(itemsPerSecond.ToString("#,##0") + " items per seoncd");
+            Assert.That(unProcessedCount, Is.EqualTo(0), "Items not Processed");
+        }
+
+        void RunSync(JobItem[] items)
+        {
+            var testSize = items.Length;
+            for (int i = 0; i < testSize; i++) { queueMgr.AddDatabaseJob(items[i]); }
+        }
+
+        void RunParallel(JobItem[] items)
+        {
+            var testSize = items.Length;
+            System.Threading.Tasks.Parallel.For(0, testSize, i => queueMgr.AddDatabaseJob(items[i]));
+        }
+
+        void queueMgr_EmptyQueue(object sender, EventArgs e)
+        {
+            if (queueMgr.TotalProcessCount > 0)
+            {
+                mre.Set();
+            }
         }
     }
 }

@@ -22,8 +22,6 @@ namespace NAppProfiler.Server.Essent
         private JET_DBID dbid;
         private bool disposed;
 
-        public string DatabaseFullPath { get { return databaseFullPath; } }
-
         public Database(ConfigManager config, string directory = "")
         {
             this.config = config;
@@ -41,6 +39,8 @@ namespace NAppProfiler.Server.Essent
             this.tblSchema = new LogTableSchema();
             this.idxSchema = new IndexTableSchema();
         }
+
+        public string DatabaseFullPath { get { return databaseFullPath; } }
 
         public void InitializeDatabase()
         {

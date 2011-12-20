@@ -8,67 +8,92 @@ namespace NAppProfiler.Server.Manager
 {
     class JobQueue
     {
-        private readonly JobItem[] items;
-        private readonly int maxSize;
+        private readonly long maxSize;
         private readonly bool traceEnabled;
 
+        private volatile JobItem[] items;
+        private volatile int[] itemStates;
         private long curIn;
         private long curOut;
+        private Guid id;
 
         private long addCounter;
         private long dequeueCounter;
-        private long spinAddCounter;
-
-        public long AddCounter { get { return addCounter; } }
-        public long DequeueCounter { get { return dequeueCounter; } }
 
         public JobQueue(int size, bool traceEnabled)
         {
             this.items = new JobItem[size];
-            this.maxSize = size;
+            this.itemStates = new int[size];
+            this.maxSize = (long)size;
             curOut = -1;
             curIn = -1;
             this.traceEnabled = traceEnabled;
+            this.id = Guid.NewGuid();
         }
+
+        public long AddCounter { get { return addCounter; } }
+        public long DequeueCounter { get { return dequeueCounter; } }
+        public Guid ID { get { return id; } }
 
         // Single Threaded in Retrieve
         public JobItem Dequeue()
         {
             curOut++;
-            var localCurOut = curOut;
-            var index = localCurOut % maxSize;
-            var ret = items[index];
+            var index = curOut % maxSize;
+            JobItem ret = null;
+            while (itemStates[index] != 1)
+            {
+                var sw = new SpinWait();
+                sw.SpinOnce();
+            }
+            itemStates[index] = 2;
+            ret = items[index];
+            if (ret == null)
+            {
+                var sw = new SpinWait();
+                while (ret == null)
+                {
+                    if (sw.Count > 100)
+                    {
+                        break;
+                    }
+                    sw.SpinOnce();
+                    ret = items[index];
+                }
+                if (ret == null)
+                {
+                    throw new Exception("null dequeue");
+                }
+            }
             items[index] = null;
+            itemStates[index] = 0;
             if (traceEnabled)
             {
-                Interlocked.Increment(ref dequeueCounter);
+                dequeueCounter++;
             }
             return ret;
         }
 
-        // Single Threaded in Retrieve
         public long Size()
         {
-            var localCurIn = curIn;
-            var localCurOut = curOut;
-            return localCurIn - localCurOut;
+            var ret = curIn - curOut;
+            return ret;
         }
 
+        // Multithread in Add
         public void Add(JobItem item)
         {
-            var localCurIn = curIn;
-            var localCurOut = curOut;
-            var localSize = localCurIn - localCurOut + 1;
-            if (localSize > maxSize)
+            var localCurIn = Interlocked.Increment(ref curIn);
+            var index = localCurIn % maxSize;
+            if (itemStates[index] != 0)
             {
-                SpinWait.SpinUntil(() => Size() < maxSize - 1);
-                if (traceEnabled)
+                var sw = new SpinWait();
+                while (itemStates[index] != 0)
                 {
-                    Interlocked.Increment(ref spinAddCounter);
+                    sw.SpinOnce();
                 }
             }
-            localCurIn = Interlocked.Increment(ref curIn);
-            var index = localCurIn % maxSize;
+            itemStates[index] = 1;
             items[index] = item;
             if (traceEnabled)
             {

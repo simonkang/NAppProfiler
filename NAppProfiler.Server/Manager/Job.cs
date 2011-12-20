@@ -14,18 +14,23 @@ namespace NAppProfiler.Server.Manager
         private readonly Database currentDb;
 
         private int stopping;
+        private bool traceEnabled;
 
-        public Job(ConfigManager config, bool IsDatabaseTask)
+        public Job(ConfigManager config, bool IsDatabaseTask, bool traceEnabled)
         {
             this.config = config;
             if (IsDatabaseTask)
             {
                 currentDb = new Database(config);
             }
+            this.traceEnabled = traceEnabled;
         }
+
+        public event EventHandler<WaitEventArgs> Waiting;
 
         public void Start(JobQueue queue, bool alwaysRunning)
         {
+            var processCount = 0L;
             var running = true;
             var topBound = 35;
             var jobItems = new JobItem[topBound + 1];
@@ -43,35 +48,44 @@ namespace NAppProfiler.Server.Manager
                         jobItems[itemsToProcess] = queue.Dequeue();
                         if (itemsToProcess >= topBound)
                         {
-                            ProcessItems(jobItems, itemsToProcess);
+                            processCount += ProcessItems(jobItems, itemsToProcess);
                             itemsToProcess = -1;
                         }
                         loop++;
                     }
+                    if (itemsToProcess >= 0)
+                    {
+                        processCount += ProcessItems(jobItems, itemsToProcess);
+                        itemsToProcess = -1;
+                    }
                     curSize = queue.Size();
                 }
-                if (itemsToProcess >= 0)
-                {
-                    ProcessItems(jobItems, itemsToProcess);
-                }
-                running = Wait(queue, alwaysRunning);
+                running = Wait(queue, alwaysRunning, processCount);
             }
         }
 
-        void ProcessItems(JobItem[] jobItems, int topBound)
+        long ProcessItems(JobItem[] jobItems, int topBound)
         {
+            var processCount = 0L;
             for (int i = 0; i <= topBound; i++)
             {
+                jobItems[i].Processed = true;
                 jobItems[i] = null;
+                processCount++;
             }
+            return processCount;
         }
 
-        bool Wait(JobQueue queue, bool alwaysRunning)
+        bool Wait(JobQueue queue, bool alwaysRunning, long processCount)
         {
             var ret = false;
             var exitMethod = false;
             var dtCountdown = DateTime.UtcNow + TimeSpan.FromSeconds(30);
             var sw = new SpinWait();
+            if (traceEnabled && Waiting != null)
+            {
+                Waiting(this, new WaitEventArgs(processCount, queue.ID));
+            }
 
             while (!exitMethod)
             {
@@ -93,7 +107,6 @@ namespace NAppProfiler.Server.Manager
                     else
                     {
                         sw.SpinOnce();
-                        sw.Reset();
                     }
                 }
             }
