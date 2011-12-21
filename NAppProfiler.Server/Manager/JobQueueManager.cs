@@ -11,6 +11,7 @@ namespace NAppProfiler.Server.Manager
     public class JobQueueManager : IDisposable
     {
         private static object startJobLock;
+        private static object totalProcessCountLock;
 
         private readonly ConfigManager config;
         private readonly bool traceEnabled;
@@ -29,7 +30,6 @@ namespace NAppProfiler.Server.Manager
         private long addIndexCounter;
         private Dictionary<Guid, long> processCounts;
         private long totalProcessCount;
-        private object totalProcessCountLock;
 
         public JobQueueManager(ConfigManager config)
         {
@@ -39,7 +39,6 @@ namespace NAppProfiler.Server.Manager
                 traceEnabled = false;
             }
             startJobLock = new object();
-            totalProcessCountLock = new object();
         }
 
         public event EventHandler EmptyQueue;
@@ -61,6 +60,7 @@ namespace NAppProfiler.Server.Manager
 
             if (traceEnabled)
             {
+                totalProcessCountLock = new object();
                 processCounts = new Dictionary<Guid, long>();
                 for (int i = 0; i < queues.Length; i++)
                 {

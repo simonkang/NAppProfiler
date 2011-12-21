@@ -12,8 +12,9 @@ namespace NAppProfiler.Server.Manager
         private readonly bool traceEnabled;
 
         private volatile JobItem[] items;
-        private volatile int[] itemStates;
+        private volatile int[] itemStates; // 0-Empty, 1-About to Add, 2-Added, 3-About to Remove
         private long curIn;
+        private long pendingCurIn;
         private long curOut;
         private Guid id;
 
@@ -27,6 +28,7 @@ namespace NAppProfiler.Server.Manager
             this.maxSize = (long)size;
             curOut = -1;
             curIn = -1;
+            pendingCurIn = -1;
             this.traceEnabled = traceEnabled;
             this.id = Guid.NewGuid();
         }
@@ -39,34 +41,36 @@ namespace NAppProfiler.Server.Manager
         public JobItem Dequeue()
         {
             curOut++;
-            var index = curOut % maxSize;
-            JobItem ret = null;
-            while (itemStates[index] != 1)
+            var longIndex = curOut % maxSize;
+            var index = Convert.ToInt32(longIndex);
+            if (Interlocked.CompareExchange(ref itemStates[index], 3, 2) != 2)
             {
                 var sw = new SpinWait();
-                sw.SpinOnce();
+                while (Interlocked.CompareExchange(ref itemStates[index], 3, 2) != 2 && sw.Count < 1000)
+                {
+                    sw.SpinOnce();
+                }
             }
-            itemStates[index] = 2;
-            ret = items[index];
+            JobItem ret = items[index];
             if (ret == null)
             {
                 var sw = new SpinWait();
-                while (ret == null)
+                do
                 {
-                    if (sw.Count > 100)
-                    {
-                        break;
-                    }
                     sw.SpinOnce();
                     ret = items[index];
-                }
+                } while (ret == null && sw.Count <= 100);
                 if (ret == null)
                 {
-                    throw new Exception("null dequeue");
+                    //throw new Exception("null dequeue");
                 }
             }
             items[index] = null;
-            itemStates[index] = 0;
+            var beforeEx = Interlocked.CompareExchange(ref itemStates[index], 0, 3);
+            if (beforeEx != 3)
+            {
+                throw new Exception("unknown value");
+            }
             if (traceEnabled)
             {
                 dequeueCounter++;
@@ -83,18 +87,36 @@ namespace NAppProfiler.Server.Manager
         // Multithread in Add
         public void Add(JobItem item)
         {
-            var localCurIn = Interlocked.Increment(ref curIn);
-            var index = localCurIn % maxSize;
-            if (itemStates[index] != 0)
+            var localPending = Interlocked.Increment(ref pendingCurIn);
+            var wrapping = curIn + maxSize - 2;
+            // Number of pending Add's > then maxSize of array
+            if (localPending >= wrapping)
             {
                 var sw = new SpinWait();
-                while (itemStates[index] != 0)
+                do
+                {
+                    sw.SpinOnce();
+                    wrapping = curIn + maxSize - 2;
+                } while (localPending >= wrapping);
+            }
+            var localCurIn = Interlocked.Increment(ref curIn);
+            var longIndex = localCurIn % maxSize;
+            var index = Convert.ToInt32(longIndex);
+            if (Interlocked.CompareExchange(ref itemStates[index], 1, 0) != 0)
+            {
+                var sw = new SpinWait();
+                //var wrapPoint = curOut + maxSize;
+                while (Interlocked.CompareExchange(ref itemStates[index], 1, 0) != 0)
                 {
                     sw.SpinOnce();
                 }
             }
-            itemStates[index] = 1;
             items[index] = item;
+            var beforeEx = Interlocked.CompareExchange(ref itemStates[index], 2, 1);
+            if (beforeEx != 1)
+            {
+                throw new Exception();
+            }
             if (traceEnabled)
             {
                 Interlocked.Increment(ref addCounter);

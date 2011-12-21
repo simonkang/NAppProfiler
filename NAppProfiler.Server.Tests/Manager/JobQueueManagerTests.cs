@@ -35,7 +35,7 @@ namespace NAppProfiler.Server.Tests.Manager
         [Test]
         public void RunPerfTest_Sync()
         {
-            RunTest(false);            
+            RunTest(false);
         }
 
         [Test]
