@@ -15,7 +15,10 @@ namespace NAppProfiler.Server.Manager
 
         private readonly ConfigManager config;
         private readonly bool traceEnabled;
-        
+        private readonly bool fixedNoOfTasks;
+
+        private int maxTasks;
+        private volatile int curAddTask;
         private Task[] tasks;
         private int[] taskRunning;
         private JobQueue[] queues;
@@ -23,7 +26,6 @@ namespace NAppProfiler.Server.Manager
         private Job indexJob;
         private int whenToStartNewTask;
         private int curNumberRunningTasks;
-        private int queueSize;
 
         // Used for Trace and Performance Tests
         private long addDBCounter;
@@ -38,6 +40,10 @@ namespace NAppProfiler.Server.Manager
             {
                 traceEnabled = false;
             }
+            if (!bool.TryParse(config.GetSetting(SettingKeys.Manager_FixedNoOfTasks, bool.TrueString), out fixedNoOfTasks))
+            {
+                fixedNoOfTasks = true;
+            }
             startJobLock = new object();
         }
 
@@ -47,7 +53,7 @@ namespace NAppProfiler.Server.Manager
 
         public void Initialize()
         {
-            int maxTasks = GetMaxNumberOfTasks();
+            GetMaxNumberOfTasks();
             tasks = new Task[maxTasks];
             queues = new JobQueue[maxTasks];
             taskRunning = new int[maxTasks];
@@ -105,11 +111,23 @@ namespace NAppProfiler.Server.Manager
             tasks[0] = dbTask;
             taskRunning[0] = 1;
             curNumberRunningTasks = 1;
+            if (fixedNoOfTasks)
+            {
+                for (int i = 1; i < tasks.Length; i++)
+                {
+                    var localIndex = i;
+                    var localQueue = queues[i];
+                    var localTask = Task.Factory.StartNew(
+                        () => indexJob.Start(localQueue, true), TaskCreationOptions.LongRunning);
+                    taskRunning[localIndex] = 1;
+                    tasks[localIndex] = localTask;
+                    curNumberRunningTasks++;
+                }
+            }
         }
 
         int GetMaxNumberOfTasks()
         {
-            int maxTasks;
             if (!Int32.TryParse(config.GetSetting(SettingKeys.Manager_MaxTasks), out maxTasks))
             {
                 maxTasks = Environment.ProcessorCount - 1;
@@ -123,6 +141,7 @@ namespace NAppProfiler.Server.Manager
 
         void InitializeQueues()
         {
+            int queueSize;
             if (!Int32.TryParse(config.GetSetting(SettingKeys.Manager_QueueSize), out queueSize))
             {
                 queueSize = 1024;
@@ -134,7 +153,23 @@ namespace NAppProfiler.Server.Manager
             }
         }
 
-        public void AddDatabaseJob(JobItem job)
+        public void AddJob(JobItem job)
+        {
+            switch (job.Type)
+            {
+                case JobTypes.Empty:
+                case JobTypes.Index:
+                    AddIndexJob(job);
+                    break;
+                case JobTypes.Database:
+                    AddDatabaseJob(job);
+                    break;
+                default:
+                    throw new ApplicationException("unkonwn job type");
+            }
+        }
+
+        void AddDatabaseJob(JobItem job)
         {
             AddToQueue(job, 0);
             if (traceEnabled)
@@ -143,22 +178,37 @@ namespace NAppProfiler.Server.Manager
             }
         }
 
-        public void AddIndexJob(JobItem job)
+        void AddIndexJob(JobItem job)
         {
             var addIndex = 0;
             CheckToStartNewJob();
             if (curNumberRunningTasks > 1)
             {
-                // Loop through all Index queues that are running and add to the smallest queue
-                var minSize = int.MaxValue;
-                for (int i = 1; i < taskRunning.Length; i++)
+                // Changed to Round Robin Method
+                while (addIndex == 0)
                 {
-                    var localTaskRunning = taskRunning[i];
-                    if (localTaskRunning == 1 && queues[i].Size() < minSize)
+                    curAddTask++;
+                    var localCurTask = curAddTask;
+                    if (localCurTask >= maxTasks)
                     {
-                        addIndex = i;
+                        curAddTask = 1;
+                        localCurTask = 1;
+                    }
+                    if (taskRunning[localCurTask] == 1)
+                    {
+                        addIndex = localCurTask;
                     }
                 }
+                // Loop through all Index queues that are running and add to the smallest queue
+                //var minSize = int.MaxValue;
+                //for (int i = 1; i < taskRunning.Length; i++)
+                //{
+                //    var localTaskRunning = taskRunning[i];
+                //    if (localTaskRunning == 1 && queues[i].Size() < minSize)
+                //    {
+                //        addIndex = i;
+                //    }
+                //}
             }
             AddToQueue(job, addIndex);
             if (traceEnabled)
@@ -174,7 +224,7 @@ namespace NAppProfiler.Server.Manager
 
         void CheckToStartNewJob()
         {
-            if (curNumberRunningTasks < tasks.Length)
+            if (curNumberRunningTasks < maxTasks)
             {
                 var shouldStartNewJob = false;
                 for (int i = 0; i < taskRunning.Length; i++)

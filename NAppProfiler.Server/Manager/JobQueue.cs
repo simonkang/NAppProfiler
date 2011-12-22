@@ -88,7 +88,7 @@ namespace NAppProfiler.Server.Manager
         public void Add(JobItem item)
         {
             var localPending = Interlocked.Increment(ref pendingCurIn);
-            var wrapping = curIn + maxSize - 2;
+            var wrapping = curIn + maxSize - 1;
             // Number of pending Add's > then maxSize of array
             if (localPending >= wrapping)
             {
@@ -105,7 +105,6 @@ namespace NAppProfiler.Server.Manager
             if (Interlocked.CompareExchange(ref itemStates[index], 1, 0) != 0)
             {
                 var sw = new SpinWait();
-                //var wrapPoint = curOut + maxSize;
                 while (Interlocked.CompareExchange(ref itemStates[index], 1, 0) != 0)
                 {
                     sw.SpinOnce();
@@ -115,7 +114,7 @@ namespace NAppProfiler.Server.Manager
             var beforeEx = Interlocked.CompareExchange(ref itemStates[index], 2, 1);
             if (beforeEx != 1)
             {
-                throw new Exception();
+                throw new ApplicationException("unknown value");
             }
             if (traceEnabled)
             {

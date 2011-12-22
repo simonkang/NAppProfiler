@@ -46,11 +46,13 @@ namespace NAppProfiler.Server.Tests.Manager
 
         void RunTest(bool parallel)
         {
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
             var testSize = 10000000; // 10 million
             var items = new JobItem[testSize];
             for (int i = 0; i < testSize; i++)
             {
-                items[i] = new JobItem();
+                items[i] = new JobItem(JobTypes.Empty);
             }
             var dt1 = DateTime.UtcNow;
             if (parallel)
@@ -82,20 +84,20 @@ namespace NAppProfiler.Server.Tests.Manager
             Console.WriteLine("Parallel: " + parallel.ToString());
             Console.WriteLine(ts.ToString() + " " + unProcessedCount.ToString());
             var itemsPerSecond = (testSize / ts.TotalMilliseconds) * 1000D;
-            Console.WriteLine(itemsPerSecond.ToString("#,##0") + " items per seoncd");
+            Console.WriteLine(itemsPerSecond.ToString("#,##0") + " items per second");
             Assert.That(unProcessedCount, Is.EqualTo(0), "Items not Processed");
         }
 
         void RunSync(JobItem[] items)
         {
             var testSize = items.Length;
-            for (int i = 0; i < testSize; i++) { queueMgr.AddDatabaseJob(items[i]); }
+            for (int i = 0; i < testSize; i++) { queueMgr.AddJob(items[i]); }
         }
 
         void RunParallel(JobItem[] items)
         {
             var testSize = items.Length;
-            System.Threading.Tasks.Parallel.For(0, testSize, i => queueMgr.AddDatabaseJob(items[i]));
+            System.Threading.Tasks.Parallel.For(0, testSize, i => queueMgr.AddJob(items[i]));
         }
 
         void queueMgr_EmptyQueue(object sender, EventArgs e)
