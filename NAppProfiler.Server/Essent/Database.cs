@@ -149,15 +149,39 @@ namespace NAppProfiler.Server.Essent
             }
         }
 
-        //TODO: Use LogEntity for Testing - Need to change to BSON object in Client Library
-        public long? InsertLog(DateTime createdDateTime, long elapsed, byte[] data)
+        public IEnumerable<long?> InsertLogs(params LogEntity[] logs)
         {
-            return tblSchema.InsertLog(session, idxSchema, createdDateTime, elapsed, data);
+            var ret = new List<long?>();
+            using (var tran = new Transaction(session))
+            {
+                var len = logs.Length;
+                for (int i = 0; i < len; i++)
+                {
+                    if (logs[i] != null)
+                    {
+                        ret.Add(tblSchema.InsertLog(session, tran, idxSchema, logs[i]));
+                    }
+                }
+                tran.Commit(CommitTransactionGrbit.LazyFlush);
+            }
+            return ret;
         }
 
         public IList<LogEntity> RetrieveLogByIDs(params long[] ids)
         {
-            return tblSchema.RetrieveLogByIDs(session, ids);
+            return RetrieveLogByIDs("current", ids);
+        }
+
+        public IList<LogEntity> RetrieveLogByIDs(string database, params long[] ids)
+        {
+            if (database.IndexOf("current", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return tblSchema.RetrieveLogByIDs(session, ids);
+            }
+            else
+            {
+                return new List<LogEntity>();
+            }
         }
 
         public long Count(DateTime from, DateTime to)

@@ -155,17 +155,13 @@ namespace NAppProfiler.Server.Manager
 
         public void AddJob(JobItem job)
         {
-            switch (job.Type)
+            if (job.Method > 900)
             {
-                case JobTypes.Empty:
-                case JobTypes.Index:
-                    AddIndexJob(job);
-                    break;
-                case JobTypes.Database:
-                    AddDatabaseJob(job);
-                    break;
-                default:
-                    throw new ApplicationException("unkonwn job type");
+                AddDatabaseJob(job);
+            }
+            else
+            {
+                AddIndexJob(job);
             }
         }
 

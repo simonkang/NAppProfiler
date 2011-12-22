@@ -2,25 +2,28 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using NAppProfiler.Server.Essent;
 
 namespace NAppProfiler.Server.Manager
 {
-    public enum JobTypes
+    public class JobMethods
     {
-        Empty,
-        Database,
-        Index,
+        // All Database Methods must be greater than 900
+        public const int Empty = 0;
+        public const int Index = 101;
+        public const int Database_InsertLogs = 901;
     }
 
     public class JobItem
     {
-        private readonly JobTypes type;
+        private readonly int method;
 
         private bool processed;
+        private LogEntity logEntityItem;
 
-        public JobItem(JobTypes type)
+        public JobItem(int method)
         {
-            this.type = type;
+            this.method = method;
         }
 
         public bool Processed
@@ -29,9 +32,15 @@ namespace NAppProfiler.Server.Manager
             set { processed = value; }
         }
 
-        public JobTypes Type
+        public int Method
         {
-            get { return type; }
+            get { return method; }
+        }
+
+        public LogEntity LogEntityItem
+        {
+            get { return logEntityItem; }
+            set { logEntityItem = value; }
         }
     }
 }

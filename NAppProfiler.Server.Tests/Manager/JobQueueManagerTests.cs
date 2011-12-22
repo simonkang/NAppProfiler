@@ -35,25 +35,31 @@ namespace NAppProfiler.Server.Tests.Manager
         [Test]
         public void RunPerfTest_Sync()
         {
-            RunTest(false);
+            RunTest(false, CreateEmptyJobItems());
         }
 
         [Test]
         public void RunPerfTest_Parallel()
         {
-            RunTest(true);
+            RunTest(true, CreateEmptyJobItems());
         }
 
-        void RunTest(bool parallel)
+        JobItem[] CreateEmptyJobItems()
         {
-            GC.WaitForPendingFinalizers();
-            GC.Collect();
             var testSize = 10000000; // 10 million
             var items = new JobItem[testSize];
             for (int i = 0; i < testSize; i++)
             {
-                items[i] = new JobItem(JobTypes.Empty);
+                items[i] = new JobItem(JobMethods.Empty);
             }
+            return items;
+        }
+
+        void RunTest(bool parallel, JobItem[] items)
+        {
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+            long testSize = items.Length;
             var dt1 = DateTime.UtcNow;
             if (parallel)
             {
@@ -106,6 +112,59 @@ namespace NAppProfiler.Server.Tests.Manager
             {
                 mre.Set();
             }
+        }
+
+        [Test]
+        public void InsertLogsTest_Sync()
+        {
+            RunTest(false, CreateInsertLogItems());
+        }
+
+        [Test]
+        public void InsertLogsTest_Parallel()
+        {
+            RunTest(true, CreateInsertLogItems());
+        }
+
+        JobItem[] CreateInsertLogItems()
+        {
+            var testSize = 50000;
+            var items = new JobItem[testSize];
+            var insertStart = new DateTime(2011, 11, 1);
+            var interval = (long)((DateTime.Now - insertStart).Ticks / testSize);
+            var rndElapsed = new Random();
+            for (int i = 0; i < items.Length; i++)
+            {
+                var createdDT = insertStart.AddTicks(interval * i);
+                var elapsed = (long)rndElapsed.Next(1, 30000);
+                var log = new NAppProfiler.Client.DTO.Log()
+                {
+                    CIP = new byte[] { 10, 26, 10, 142 },
+                    CrDT = createdDT,
+                    Dtl = new List<NAppProfiler.Client.DTO.LogDetail>(),
+                    ED = elapsed,
+                    Err = Convert.ToBoolean(rndElapsed.Next(0, 1)),
+                    Mtd = "Method",
+                    Svc = "Service",
+                };
+                log.Dtl.Add(new Client.DTO.LogDetail()
+                {
+                    CrDT = createdDT,
+                    Dsc = "Description " + i.ToString(),
+                    Ed = 100,
+                });
+                log.Dtl.Add(new Client.DTO.LogDetail()
+                {
+                    CrDT = createdDT,
+                    Dsc = "Description2 " + i.ToString(),
+                    Ed = 100,
+                });
+                items[i] = new JobItem(JobMethods.Database_InsertLogs)
+                {
+                    LogEntityItem = new Server.Essent.LogEntity(createdDT, new TimeSpan(elapsed), Client.DTO.Log.SerializeLog(log)),
+                };
+            }
+            return items;
         }
     }
 }

@@ -5,16 +5,24 @@ using System.Text;
 using System.Threading;
 using NAppProfiler.Server.Configuration;
 using NAppProfiler.Server.Essent;
+using NLog;
 
 namespace NAppProfiler.Server.Manager
 {
     class Job : IDisposable
     {
+        private static Logger log;
+
         private readonly ConfigManager config;
         private readonly Database currentDb;
 
         private int stopping;
         private bool traceEnabled;
+
+        static Job()
+        {
+            log = LogManager.GetCurrentClassLogger();
+        }
 
         public Job(ConfigManager config, bool IsDatabaseTask, bool traceEnabled)
         {
@@ -22,6 +30,7 @@ namespace NAppProfiler.Server.Manager
             if (IsDatabaseTask)
             {
                 currentDb = new Database(config);
+                currentDb.InitializeDatabase();
             }
             this.traceEnabled = traceEnabled;
         }
@@ -66,12 +75,28 @@ namespace NAppProfiler.Server.Manager
 
         long ProcessItems(JobItem[] jobItems, int topBound)
         {
+            // TODO: Error Handling
             var processCount = 0L;
+
+            var insertLogExists = false;
+            LogEntity[] insertLogs = new LogEntity[topBound + 1];
+
             for (int i = 0; i <= topBound; i++)
             {
+
+                if (jobItems[i].Method == JobMethods.Database_InsertLogs)
+                {
+                    insertLogExists = true;
+                    insertLogs[i] = jobItems[i].LogEntityItem;
+                }
                 jobItems[i].Processed = true;
                 jobItems[i] = null;
                 processCount++;
+            }
+
+            if (insertLogExists)
+            {
+                currentDb.InsertLogs(insertLogs);
             }
             return processCount;
         }
