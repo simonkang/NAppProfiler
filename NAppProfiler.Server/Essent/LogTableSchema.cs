@@ -98,11 +98,11 @@ namespace NAppProfiler.Server.Essent
             return ret;
         }
 
-        public IList<LogEntity> RetrieveLogByIDs(JET_SESID session, params long[] ids)
+        public IList<LogEntity> RetrieveLogByIDs(JET_SESID session, IList<long> ids)
         {
-            var ret = new List<LogEntity>();
+            var ret = new List<LogEntity>(ids.Count);
             Api.JetSetCurrentIndex(session, logTable, idxName_Primary);
-            for (int i = 0; i < ids.Length; i++)
+            for (int i = 0; i < ids.Count; i++)
             {
                 Api.MakeKey(session, logTable, ids[i], MakeKeyGrbit.NewKey);
                 if (Api.TrySeek(session, logTable, SeekGrbit.SeekEQ))

@@ -62,7 +62,7 @@ namespace NAppProfiler.Server.Manager
                 } while (ret == null && sw.Count <= 100);
                 if (ret == null)
                 {
-                    //throw new Exception("null dequeue");
+                    throw new Exception("null dequeue");
                 }
             }
             items[index] = null;

@@ -57,8 +57,6 @@ namespace NAppProfiler.Server.Tests.Manager
 
         void RunTest(bool parallel, JobItem[] items)
         {
-            GC.WaitForPendingFinalizers();
-            GC.Collect();
             long testSize = items.Length;
             var dt1 = DateTime.UtcNow;
             if (parallel)
@@ -92,6 +90,11 @@ namespace NAppProfiler.Server.Tests.Manager
             var itemsPerSecond = (testSize / ts.TotalMilliseconds) * 1000D;
             Console.WriteLine(itemsPerSecond.ToString("#,##0") + " items per second");
             Assert.That(unProcessedCount, Is.EqualTo(0), "Items not Processed");
+            
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+            GC.Collect();
+            Thread.Sleep(1);
         }
 
         void RunSync(JobItem[] items)
@@ -161,8 +164,9 @@ namespace NAppProfiler.Server.Tests.Manager
                 });
                 items[i] = new JobItem(JobMethods.Database_InsertLogs)
                 {
-                    LogEntityItem = new Server.Essent.LogEntity(createdDT, new TimeSpan(elapsed), Client.DTO.Log.SerializeLog(log)),
+                    LogEntityItems = new List<Server.Essent.LogEntity>(),
                 };
+                items[i].LogEntityItems.Add(new Server.Essent.LogEntity(createdDT, new TimeSpan(elapsed), Client.DTO.Log.SerializeLog(log)));
             }
             return items;
         }

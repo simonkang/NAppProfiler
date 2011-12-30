@@ -17,6 +17,7 @@ namespace NAppProfiler.Server.Configuration
         public static string Manager_MaxTasks { get { return "Manager_MaxTasks"; } }
         public static string Manager_QueueSize { get { return "Manager_QueueSize"; } }
         public static string Manager_FixedNoOfTasks { get { return "Manager_FixedNoOfTasks"; } }
+        public static string Manager_ProcessorQueueSize { get { return "Manager_ProcessorQueueSize"; } }
 
         public static string Trace_Logging { get { return "Trace_Logging"; } }
     }

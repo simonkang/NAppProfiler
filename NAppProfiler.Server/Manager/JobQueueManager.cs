@@ -58,8 +58,8 @@ namespace NAppProfiler.Server.Manager
             queues = new JobQueue[maxTasks];
             taskRunning = new int[maxTasks];
 
-            databaseJob = new Job(config, true, traceEnabled);
-            indexJob = new Job(config, false, traceEnabled);
+            databaseJob = new Job(config, this, true, traceEnabled);
+            indexJob = new Job(config, this, false, traceEnabled);
 
             InitializeQueues();
             InitializeTasks();

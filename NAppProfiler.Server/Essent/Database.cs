@@ -149,12 +149,12 @@ namespace NAppProfiler.Server.Essent
             }
         }
 
-        public IEnumerable<long?> InsertLogs(params LogEntity[] logs)
+        public IEnumerable<long?> InsertLogs(IList<LogEntity> logs)
         {
             var ret = new List<long?>();
             using (var tran = new Transaction(session))
             {
-                var len = logs.Length;
+                var len = logs.Count;
                 for (int i = 0; i < len; i++)
                 {
                     if (logs[i] != null)
@@ -167,12 +167,12 @@ namespace NAppProfiler.Server.Essent
             return ret;
         }
 
-        public IList<LogEntity> RetrieveLogByIDs(params long[] ids)
+        public IList<LogEntity> RetrieveLogByIDs(IList<long> ids)
         {
             return RetrieveLogByIDs("current", ids);
         }
 
-        public IList<LogEntity> RetrieveLogByIDs(string database, params long[] ids)
+        public IList<LogEntity> RetrieveLogByIDs(string database, IList<long> ids)
         {
             if (database.IndexOf("current", StringComparison.OrdinalIgnoreCase) >= 0)
             {

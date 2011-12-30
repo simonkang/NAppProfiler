@@ -42,7 +42,8 @@ namespace NAppProfiler.Server.Tests.Essent
                 }
                 db.InitializeDatabase();
                 Assert.That(File.Exists(db.DatabaseFullPath));
-                db.InsertLogs(new LogEntity(DateTime.Now, TimeSpan.FromMilliseconds(300), new byte[] { 4, 4, 4 }));
+                var log = new LogEntity(DateTime.Now, TimeSpan.FromMilliseconds(300), new byte[] { 4, 4, 4 });
+                db.InsertLogs(new LogEntity[] { log });
             }
         }
 
@@ -52,7 +53,8 @@ namespace NAppProfiler.Server.Tests.Essent
             using (var db = new Database(new ConfigManager()))
             {
                 db.InitializeDatabase();
-                var id = db.InsertLogs(new LogEntity(DateTime.Now, TimeSpan.FromMilliseconds(300), new byte[] { 3, 30, 255 }));
+                var log = new LogEntity(DateTime.Now, TimeSpan.FromMilliseconds(300), new byte[] { 3, 30, 255 });
+                var id = db.InsertLogs(new LogEntity[] { log });
                 Assert.That(id, Is.Not.Null);
                 Assert.That(id, Is.Not.LessThanOrEqualTo(0));
             }
@@ -64,7 +66,9 @@ namespace NAppProfiler.Server.Tests.Essent
             using (var db = new Database(new ConfigManager()))
             {
                 db.InitializeDatabase();
-                var log = db.RetrieveLogByIDs(1);
+                var ids = new List<long>(1);
+                ids.Add(1);
+                var log = db.RetrieveLogByIDs(ids);
                 Assert.IsNotNull(log);
                 Assert.AreEqual(1, log.Count);
                 Assert.AreEqual(1, log[0].ID);
@@ -112,7 +116,8 @@ namespace NAppProfiler.Server.Tests.Essent
                         Dsc = "Description2 " + i.ToString(),
                         Ed = 100,
                     });
-                    db.InsertLogs(new LogEntity(createdDT, new TimeSpan(elapsed), NAppProfiler.Client.DTO.Log.SerializeLog(log)));
+                    var logEnt = new LogEntity(createdDT, new TimeSpan(elapsed), NAppProfiler.Client.DTO.Log.SerializeLog(log));
+                    db.InsertLogs(new LogEntity[] { logEnt });
                 }
                 stop = DateTime.UtcNow;
                 ts = stop - start;
@@ -121,7 +126,7 @@ namespace NAppProfiler.Server.Tests.Essent
                 start = DateTime.UtcNow;
                 for (int i = 1; i < 200001; i++)
                 {
-                    var log = db.RetrieveLogByIDs((long)i);
+                    var log = db.RetrieveLogByIDs(new long[] { (long)i });
                     var logDe = NAppProfiler.Client.DTO.Log.DeserializeLog(log[0].Data);
                 }
                 stop = DateTime.UtcNow;

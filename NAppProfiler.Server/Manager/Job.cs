@@ -15,6 +15,7 @@ namespace NAppProfiler.Server.Manager
 
         private readonly ConfigManager config;
         private readonly Database currentDb;
+        private readonly JobQueueManager manager;
 
         private int stopping;
         private bool traceEnabled;
@@ -24,7 +25,7 @@ namespace NAppProfiler.Server.Manager
             log = LogManager.GetCurrentClassLogger();
         }
 
-        public Job(ConfigManager config, bool IsDatabaseTask, bool traceEnabled)
+        public Job(ConfigManager config, JobQueueManager manager, bool IsDatabaseTask, bool traceEnabled)
         {
             this.config = config;
             if (IsDatabaseTask)
@@ -32,6 +33,7 @@ namespace NAppProfiler.Server.Manager
                 currentDb = new Database(config);
                 currentDb.InitializeDatabase();
             }
+
             this.traceEnabled = traceEnabled;
         }
 
@@ -39,66 +41,31 @@ namespace NAppProfiler.Server.Manager
 
         public void Start(JobQueue queue, bool alwaysRunning)
         {
-            var processCount = 0L;
+            var processor = new JobProcessor(config, currentDb);
             var running = true;
-            var topBound = 35;
-            var jobItems = new JobItem[topBound + 1];
-            var itemsToProcess = -1;
             while (running)
             {
-                itemsToProcess = -1;
                 var curSize = queue.Size();
                 while (curSize > 0)
                 {
                     var loop = 0;
                     while (loop < curSize)
                     {
-                        itemsToProcess++;
-                        jobItems[itemsToProcess] = queue.Dequeue();
-                        if (itemsToProcess >= topBound)
+                        try
                         {
-                            processCount += ProcessItems(jobItems, itemsToProcess);
-                            itemsToProcess = -1;
+                            processor.Add(queue.Dequeue());
+                        }
+                        catch (Exception ex)
+                        {
+                            log.ErrorException("Dequeue Exception", ex);
                         }
                         loop++;
                     }
-                    if (itemsToProcess >= 0)
-                    {
-                        processCount += ProcessItems(jobItems, itemsToProcess);
-                        itemsToProcess = -1;
-                    }
                     curSize = queue.Size();
                 }
-                running = Wait(queue, alwaysRunning, processCount);
+                processor.Flush();
+                running = Wait(queue, alwaysRunning, processor.ProcessCount);
             }
-        }
-
-        long ProcessItems(JobItem[] jobItems, int topBound)
-        {
-            // TODO: Error Handling
-            var processCount = 0L;
-
-            var insertLogExists = false;
-            LogEntity[] insertLogs = new LogEntity[topBound + 1];
-
-            for (int i = 0; i <= topBound; i++)
-            {
-
-                if (jobItems[i].Method == JobMethods.Database_InsertLogs)
-                {
-                    insertLogExists = true;
-                    insertLogs[i] = jobItems[i].LogEntityItem;
-                }
-                jobItems[i].Processed = true;
-                jobItems[i] = null;
-                processCount++;
-            }
-
-            if (insertLogExists)
-            {
-                currentDb.InsertLogs(insertLogs);
-            }
-            return processCount;
         }
 
         bool Wait(JobQueue queue, bool alwaysRunning, long processCount)

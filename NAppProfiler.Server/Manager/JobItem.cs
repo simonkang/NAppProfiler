@@ -12,6 +12,7 @@ namespace NAppProfiler.Server.Manager
         public const int Empty = 0;
         public const int Index = 101;
         public const int Database_InsertLogs = 901;
+        public const int Database_RetrieveLogs = 902;
     }
 
     public class JobItem
@@ -19,7 +20,8 @@ namespace NAppProfiler.Server.Manager
         private readonly int method;
 
         private bool processed;
-        private LogEntity logEntityItem;
+        private IList<LogEntity> logEntityItems;
+        private IList<long> logIDs;
 
         public JobItem(int method)
         {
@@ -37,10 +39,16 @@ namespace NAppProfiler.Server.Manager
             get { return method; }
         }
 
-        public LogEntity LogEntityItem
+        public IList<LogEntity> LogEntityItems
         {
-            get { return logEntityItem; }
-            set { logEntityItem = value; }
+            get { return logEntityItems; }
+            set { logEntityItems = value; }
+        }
+
+        public IList<long> LogIDs
+        {
+            get { return logIDs; }
+            set { logIDs = value; }
         }
     }
 }

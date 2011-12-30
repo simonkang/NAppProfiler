@@ -73,6 +73,7 @@
     <Compile Include="Index\NAppIndexUpdater.cs" />
     <Compile Include="Manager\Job.cs" />
     <Compile Include="Manager\JobItem.cs" />
+    <Compile Include="Manager\JobProcessor.cs" />
     <Compile Include="Manager\JobQueue.cs" />
     <Compile Include="Manager\JobQueueManager.cs" />
     <Compile Include="Manager\WaitEventArgs.cs" />
