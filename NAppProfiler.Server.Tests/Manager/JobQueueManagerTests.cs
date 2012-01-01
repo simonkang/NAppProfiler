@@ -36,6 +36,7 @@ namespace NAppProfiler.Server.Tests.Manager
         public void RunPerfTest_Sync()
         {
             RunTest(false, CreateEmptyJobItems());
+
         }
 
         [Test]
