@@ -142,25 +142,25 @@ namespace NAppProfiler.Server.Tests.Manager
                 var elapsed = (long)rndElapsed.Next(1, 30000);
                 var log = new NAppProfiler.Client.DTO.Log()
                 {
-                    CIP = new byte[] { 10, 26, 10, 142 },
-                    CrDT = createdDT,
-                    Dtl = new List<NAppProfiler.Client.DTO.LogDetail>(),
-                    ED = elapsed,
-                    Err = Convert.ToBoolean(rndElapsed.Next(0, 1)),
-                    Mtd = "Method",
-                    Svc = "Service",
+                    ClientIP = new byte[] { 10, 26, 10, 142 },
+                    CreatedDateTime = createdDT,
+                    Details = new List<NAppProfiler.Client.DTO.LogDetail>(),
+                    Elapsed = elapsed,
+                    IsError = Convert.ToBoolean(rndElapsed.Next(0, 1)),
+                    Method = "Method",
+                    Service = "Service",
                 };
-                log.Dtl.Add(new Client.DTO.LogDetail()
+                log.Details.Add(new Client.DTO.LogDetail()
                 {
-                    CrDT = createdDT,
-                    Dsc = "Description " + i.ToString(),
-                    Ed = 100,
+                    CreatedDateTime = createdDT,
+                    Description = "Description " + i.ToString(),
+                    Elapsed = 100,
                 });
-                log.Dtl.Add(new Client.DTO.LogDetail()
+                log.Details.Add(new Client.DTO.LogDetail()
                 {
-                    CrDT = createdDT,
-                    Dsc = "Description2 " + i.ToString(),
-                    Ed = 100,
+                    CreatedDateTime = createdDT,
+                    Description = "Description2 " + i.ToString(),
+                    Elapsed = 100,
                 });
                 items[i] = new JobItem(JobMethods.Database_InsertLogs)
                 {

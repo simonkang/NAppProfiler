@@ -5,82 +5,69 @@ using System.IO.Compression;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
-using Newtonsoft.Json;
+using ProtoBuf;
+using ProtoBuf.Serializers;
 
 namespace NAppProfiler.Client.DTO
 {
+    [ProtoContract]
     public class LogDetail
     {
-        [JsonIgnore]
-        private bool compressDescriptions = false;
+        [ProtoMember(1)]
+        public string Description { get; set; }
 
-        public string Dsc { get; set; }        // Description
-        public byte[] DscC { get; set; }       // Description Compressed
-        public IList<LogParm> Ps { get; set; } // Parameters (SQL)
-        public DateTime CrDT { get; set; }     // Created DateTime
-        public long Ed { get; set; }           // Elapsed
+        [ProtoMember(2)]
+        public byte[] DescCompressed { get; set; }
+
+        [ProtoMember(3)]
+        public IList<LogParm> Parameters { get; set; } // Parameters (SQL)
+
+        [ProtoMember(4)]
+        public DateTime CreatedDateTime { get; set; }
+
+        [ProtoMember(5)]
+        public long Elapsed { get; set; }
+
+        [ProtoMember(6)]
+        public bool IsSql { get; set; }
 
         internal void ShouldCompressionDescriptions(bool value)
         {
-            compressDescriptions = value;
-        }
-
-        public bool ShouldSerializeDsc()
-        {
-            return !compressDescriptions;
-        }
-
-        public bool ShouldSerializeDscC()
-        {
-            return compressDescriptions;
-        }
-
-        [OnSerializing]
-        internal void OnSerializingMethod(StreamingContext context)
-        {
-            if (compressDescriptions)
+            if (value && this.DescCompressed == null)
             {
-                if (this.Dsc.Length > 100)
+                if (this.Description != null && this.Description.Length > 100)
                 {
-                    var bData = Encoding.UTF8.GetBytes(this.Dsc);
+                    var bData = Encoding.UTF8.GetBytes(this.Description);
                     using (var compressMS = new MemoryStream())
                     using (var zipStream = new GZipStream(compressMS, CompressionMode.Compress))
                     {
                         zipStream.Write(bData, 0, bData.Length);
                         zipStream.Close();
-                        this.DscC = compressMS.ToArray();
+                        this.DescCompressed = compressMS.ToArray();
+                        this.Description = null;
                     }
                 }
                 else
                 {
-                    compressDescriptions = false;
+                    this.DescCompressed = new byte[0];
                 }
             }
         }
 
-        [OnSerialized]
-        internal void OnSerializedMethod(StreamingContext context)
+        [ProtoAfterDeserialization]
+        internal void OnDeserialized()
         {
-            if (compressDescriptions)
+            if (this.DescCompressed != null && this.DescCompressed.Length > 0)
             {
-                this.DscC = null;
-            }
-        }
-
-        [OnDeserialized]
-        internal void OnDeserializedMethod(StreamingContext context)
-        {
-            if (this.DscC != null && this.DscC.Length > 0)
-            {
-                using (var origMS = new MemoryStream(this.DscC))
+                using (var origMS = new MemoryStream(this.DescCompressed))
                 using (var zipStream = new GZipStream(origMS, CompressionMode.Decompress))
                 using (var newMS = new MemoryStream())
                 {
                     zipStream.CopyTo(newMS);
                     zipStream.Close();
-                    this.Dsc = Encoding.UTF8.GetString(newMS.ToArray());
+                    this.Description = Encoding.UTF8.GetString(newMS.ToArray());
                 }
-                this.DscC = null;
+                this.DescCompressed = null;
             }
         }
     }

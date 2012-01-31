@@ -9,6 +9,7 @@ namespace NAppProfiler.Server
     {
         static void Main(string[] args)
         {
+        	
         }
     }
 }

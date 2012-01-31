@@ -147,31 +147,31 @@ namespace NAppProfiler.Server.Index
         {
             var log = Log.DeserializeLog(data);
             fLogID.SetLongValue(id);
-            fSvc.SetValue(log.Svc);
-            fMethod.SetValue(log.Mtd);
-            fClientIP.SetValue(ConvertIPToString(log.CIP));
-            fServerIP.SetValue(ConvertIPToString(log.SIP));
-            fException.SetIntValue(Convert.ToInt32(log.Err));
-            fCreated.SetLongValue(log.CrDT.Ticks);
-            fElapsed.SetLongValue(log.ED);
+            fSvc.SetValue(log.Service);
+            fMethod.SetValue(log.Method);
+            fClientIP.SetValue(ConvertIPToString(log.ClientIP));
+            fServerIP.SetValue(ConvertIPToString(log.ServerIP));
+            fException.SetIntValue(Convert.ToInt32(log.IsError));
+            fCreated.SetLongValue(log.CreatedDateTime.Ticks);
+            fElapsed.SetLongValue(log.Elapsed);
 
-            if (log.Dtl.Count > 0)
+            if (log.Details.Count > 0)
             {
                 var desc = new StringBuilder();
                 var parms = new StringBuilder();
-                for (int x = 0; x < log.Dtl.Count; x++)
+                for (int x = 0; x < log.Details.Count; x++)
                 {
-                    var curDtl = log.Dtl[x];
-                    if (curDtl.Ps != null)
+                    var curDtl = log.Details[x];
+                    if (curDtl.Parameters != null)
                     {
-                        for (int y = 0; y < curDtl.Ps.Count; y++)
+                        for (int y = 0; y < curDtl.Parameters.Count; y++)
                         {
-                            parms.Append(curDtl.Ps[y].Val + " ");
+                            parms.Append(curDtl.Parameters[y].Value + " ");
                         }
                     }
-                    desc.Append(curDtl.Dsc + " ");
+                    desc.Append(curDtl.Description + " ");
                     fDtl_LogID.SetLongValue(id);
-                    fDtl_Elapsed.SetLongValue(curDtl.Ed);
+                    fDtl_Elapsed.SetLongValue(curDtl.Elapsed);
                     writer.AddDocument(docDetail);
                 }
                 fDesc.SetValue(desc.ToString());

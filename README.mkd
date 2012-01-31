@@ -4,7 +4,7 @@ NAppProfiler is a profiling application to monitor your Server Farm and SQL call
 The log entries are stored in a Esent database using the [ESENT Managed Interop](http://managedesent.codeplex.com/). The Table contains 3 fields.  
 1.  ID: Unique Identifier (Auto Incremented by ESENT)  
 2.  Created DateTime: Stored as long in ticks of the log entry creation Date and Time.  
-3.  BSON Data: All Log entry data with details stored as a BSON object. The Log Detail Descriptions (only if the text has more than 200 characters) are GZIPed using the [GZipStreamClass](http://msdn.microsoft.com/en-us/library/system.io.compression.gzipstream.aspx).  
+3.  Protobuf Data: All Log entry data with details stored as a protobuf object. The Log Detail Descriptions (only if the text has more than 200 characters) are GZIPed using the [GZipStreamClass](http://msdn.microsoft.com/en-us/library/system.io.compression.gzipstream.aspx).  
 ## Index
 Full Text Indexing is supported through [Lucene.NET](http://incubator.apache.org/lucene.net/).
 ## 

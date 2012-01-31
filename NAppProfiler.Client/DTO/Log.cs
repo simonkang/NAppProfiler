@@ -4,75 +4,75 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Bson;
+using ProtoBuf;
+using ProtoBuf.Serializers;
 
 namespace NAppProfiler.Client.DTO
 {
+    [ProtoContract]
     public class Log
     {
-        [JsonIgnore]
-        public bool CompressDescriptions { get; set; }
-
         /// <summary>
         /// Service Name
         /// </summary>
-        public string Svc { get; set; } 
+        [ProtoMember(1)]
+        public string Service { get; set; } 
         /// <summary>
         /// Mehod Name
         /// </summary>
-        public string Mtd { get; set; }
+        [ProtoMember(2)]
+        public string Method { get; set; }
         /// <summary>
         /// Client IP Address
         /// </summary>
-        public byte[] CIP { get; set; }
+        [ProtoMember(3)]
+        public byte[] ClientIP { get; set; }
         /// <summary>
         /// Server IP Address
         /// </summary>
-        public byte[] SIP { get; set; }
+        [ProtoMember(4)]
+        public byte[] ServerIP { get; set; }
         /// <summary>
         /// Exception Occurred
         /// </summary>
-        public bool Err { get; set; } 
+        [ProtoMember(5)]
+        public bool IsError { get; set; } 
         /// <summary>
         /// Service Start Time
         /// </summary>
-        public DateTime CrDT { get; set; } // Created DateTime
+        [ProtoMember(6)]
+        public DateTime CreatedDateTime { get; set; } // Created DateTime
         /// <summary>
         /// Elapsed Time in Timespan Ticks
         /// </summary>
-        public long ED { get; set; }
+        [ProtoMember(7)]
+        public long Elapsed { get; set; }
         /// <summary>
         /// Log Detail List
         /// </summary>
-        public IList<LogDetail> Dtl { get; set; }
+        [ProtoMember(8)]
+        public IList<LogDetail> Details { get; set; }
 
         public Log()
         {
-            this.CIP = new byte[4];
-            this.SIP = new byte[4];
+            this.ClientIP = new byte[4];
+            this.ServerIP = new byte[4];
         }
 
-        [OnSerializing]
-        internal void OnSerializingMethod(StreamingContext context)
+        public static byte[] SerializeLog(Log item, bool compressDescriptions = false)
         {
-            if (this.Dtl != null)
+            var dtl = item.Details;
+            if (dtl != null)
             {
-                foreach (var d in Dtl)
+                for (int i = 0; i < dtl.Count; i++)
                 {
-                    d.ShouldCompressionDescriptions(this.CompressDescriptions);
+                    dtl[i].ShouldCompressionDescriptions(compressDescriptions);
                 }
             }
-        }
-
-        public static byte[] SerializeLog(Log item)
-        {
             byte[] ret = null;
             using (var ms = new MemoryStream())
-            using (var writer = new BsonWriter(ms))
             {
-                var serializer = new JsonSerializer();
-                serializer.Serialize(writer, item);
+                Serializer.Serialize<Log>(ms, item);
                 ret = ms.ToArray();
             }
             return ret;
@@ -82,10 +82,8 @@ namespace NAppProfiler.Client.DTO
         {
             Log ret = null;
             using (var ms = new MemoryStream(data))
-            using (var reader = new BsonReader(ms))
             {
-                var serializer = new JsonSerializer();
-                ret = serializer.Deserialize<Log>(reader);
+                ret = Serializer.Deserialize<Log>(ms);
             }
             return ret;
         }

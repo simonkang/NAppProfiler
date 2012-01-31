@@ -2,13 +2,20 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ProtoBuf;
 
 namespace NAppProfiler.Client.DTO
 {
+    [ProtoContract]
     public class LogParm
     {
-        public string Nm { get; set; }  // Name
-        public string Val { get; set; } // Value
-        public bool sType { get; set; } // String Type
+        [ProtoMember(1)]
+        public string Name { get; set; }
+
+        [ProtoMember(2)]
+        public string Value { get; set; }
+
+        [ProtoMember(3)]
+        public bool StringType { get; set; }
     }
 }
