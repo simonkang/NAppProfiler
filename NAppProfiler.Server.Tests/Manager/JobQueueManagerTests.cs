@@ -44,6 +44,20 @@ namespace NAppProfiler.Server.Tests.Manager
             RunTest(true, CreateEmptyJobItems());
         }
 
+        [Test]
+        [Ignore]
+        public void InsertLogsTest_Sync()
+        {
+            RunTest(false, CreateInsertLogItems());
+        }
+
+        [Test]
+        //[Ignore]
+        public void InsertLogsTest_Parallel()
+        {
+            RunTest(true, CreateInsertLogItems());
+        }
+
         JobItem[] CreateEmptyJobItems()
         {
             var testSize = 10000000; // 10 million
@@ -115,18 +129,6 @@ namespace NAppProfiler.Server.Tests.Manager
             {
                 mre.Set();
             }
-        }
-
-        [Test]
-        public void InsertLogsTest_Sync()
-        {
-            RunTest(false, CreateInsertLogItems());
-        }
-
-        [Test]
-        public void InsertLogsTest_Parallel()
-        {
-            RunTest(true, CreateInsertLogItems());
         }
 
         JobItem[] CreateInsertLogItems()

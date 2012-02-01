@@ -14,17 +14,29 @@ namespace NAppProfiler.Server.Tests.Index
         [Test]
         public void IndexUpdaterTest()
         {
-            using (var idxUpdate = new NAppIndexUpdater(new ConfigManager()))
+            var config = new ConfigManager();
+            using (var currentDB = new NAppProfiler.Server.Essent.Database(config))
             {
-                idxUpdate.Initialize();
-                DateTime start;
-                DateTime stop;
-                TimeSpan ts;
-                start = DateTime.UtcNow;
-                var count = idxUpdate.UpdateIndex();
-                stop = DateTime.UtcNow;
-                ts = stop - start;
-                Console.WriteLine("Index Added " + count.ToString("#,##0") + " in " + ts.TotalMilliseconds.ToString("#,##0") + " ms");
+                currentDB.InitializeDatabase();
+                using (var idxUpdate = new NAppIndexUpdater(config, currentDB))
+                {
+                    idxUpdate.Initialize();
+                    DateTime start;
+                    DateTime stop;
+                    TimeSpan ts;
+                    start = DateTime.UtcNow;
+
+                    var totalCount = 0L;
+                    var curCount = 0L;
+                    while (curCount > 0)
+                    {
+                        curCount = idxUpdate.UpdateIndex();
+                        totalCount += curCount;
+                    }
+                    stop = DateTime.UtcNow;
+                    ts = stop - start;
+                    Console.WriteLine("Index Added " + totalCount.ToString("#,##0") + " in " + ts.TotalMilliseconds.ToString("#,##0") + " ms");
+                }
             }
         }
 
@@ -32,17 +44,21 @@ namespace NAppProfiler.Server.Tests.Index
         public void ReindexAllTest()
         {
             var config = new ConfigManager();
-            using (var idxUpdate = new NAppIndexUpdater(config))
+            using (var currentDB = new NAppProfiler.Server.Essent.Database(config))
             {
-                idxUpdate.Initialize();
-                DateTime start;
-                DateTime stop;
-                TimeSpan ts;
-                start = DateTime.UtcNow;
-                var count = idxUpdate.RebuildIndex();
-                stop = DateTime.UtcNow;
-                ts = stop - start;
-                Console.WriteLine("Index Rebuild " + count.ToString("#,##0") + " in " + ts.TotalMilliseconds.ToString("#,##0") + " ms");
+                currentDB.InitializeDatabase();
+                using (var idxUpdate = new NAppIndexUpdater(config, currentDB))
+                {
+                    idxUpdate.Initialize();
+                    DateTime start;
+                    DateTime stop;
+                    TimeSpan ts;
+                    start = DateTime.UtcNow;
+                    var count = idxUpdate.RebuildIndex();
+                    stop = DateTime.UtcNow;
+                    ts = stop - start;
+                    Console.WriteLine("Index Rebuild " + count.ToString("#,##0") + " in " + ts.TotalMilliseconds.ToString("#,##0") + " ms");
+                }
             }
         }
     }

@@ -5,6 +5,8 @@ using System.Text;
 using NLog;
 using NAppProfiler.Server.Configuration;
 using NAppProfiler.Server.Essent;
+using NAppProfiler.Server.Index;
+using System.Threading.Tasks;
 
 namespace NAppProfiler.Server.Manager
 {
@@ -14,6 +16,9 @@ namespace NAppProfiler.Server.Manager
 
         private readonly int processorQueueSize;
         private readonly Database currentDb;
+        private readonly JobQueueManager manager;
+        private readonly NAppIndexUpdater indexUpdater;
+        private readonly NAppIndexReader indexReader;
 
         private int count;
         private long processCount;
@@ -22,16 +27,20 @@ namespace NAppProfiler.Server.Manager
         private int retrieveLogCount;
         private List<JobItem> retrieveLogItems;
         private List<JobItem> emptyLogItems;
+        private bool updateIndex;
 
         static JobProcessor()
         {
             log = LogManager.GetCurrentClassLogger();
         }
 
-        public JobProcessor(ConfigManager config, Database currentDb)
+        public JobProcessor(ConfigManager config, Database currentDb, JobQueueManager manager, NAppIndexUpdater indexUpdater, NAppIndexReader indexReader)
         {
             this.currentDb = currentDb;
-            if (int.TryParse(config.GetSetting(SettingKeys.Manager_ProcessorQueueSize), out this.processorQueueSize))
+            this.manager = manager;
+            this.indexReader = indexReader;
+            this.indexUpdater = indexUpdater;
+            if (!int.TryParse(config.GetSetting(SettingKeys.Manager_ProcessorQueueSize), out this.processorQueueSize))
             {
                 this.processorQueueSize = 64;
             }
@@ -63,6 +72,11 @@ namespace NAppProfiler.Server.Manager
             {
                 emptyLogItems.Add(item);
             }
+            else if (item.Method == JobMethods.Database_UpdateIndex)
+            {
+                updateIndex = true;
+                item.Processed = true;
+            }
 
             if (count >= processorQueueSize)
             {
@@ -75,12 +89,13 @@ namespace NAppProfiler.Server.Manager
             if (insertLogCount > 0)
             {
                 InsertLogs();
+                Task.Factory.StartNew(() => manager.AddJob(new JobItem(JobMethods.Database_UpdateIndex)));
             }
-            else if (retrieveLogCount > 0)
+            if (retrieveLogCount > 0)
             {
                 RetrieveLogs();
             }
-            else if (emptyLogItems.Count > 0)
+            if (emptyLogItems.Count > 0)
             {
                 for (int i = 0; i < emptyLogItems.Count; i++)
                 {
@@ -88,6 +103,15 @@ namespace NAppProfiler.Server.Manager
                     emptyLogItems[i].Processed = true;
                 }
                 emptyLogItems.Clear();
+            }
+            if (updateIndex)
+            {
+                var ret = indexUpdater.UpdateIndex();
+                updateIndex = false;
+                if (ret >= indexUpdater.UpdateBatchSize)
+                {
+                    Task.Factory.StartNew(() => manager.AddJob(new JobItem(JobMethods.Database_UpdateIndex)));
+                }
             }
 
             count = 0;

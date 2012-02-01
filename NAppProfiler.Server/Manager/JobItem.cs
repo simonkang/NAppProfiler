@@ -13,6 +13,7 @@ namespace NAppProfiler.Server.Manager
         public const int Index = 101;
         public const int Database_InsertLogs = 901;
         public const int Database_RetrieveLogs = 902;
+        public const int Database_UpdateIndex = 903;
     }
 
     public class JobItem

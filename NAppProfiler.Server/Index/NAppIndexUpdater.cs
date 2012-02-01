@@ -16,7 +16,7 @@ namespace NAppProfiler.Server.Index
     {
         private readonly string indexFullPath;
         private readonly Directory directory;
-        private readonly Database db;
+        private readonly Database currentDb;
         private IndexWriter writer;
 
         private Document doc;
@@ -37,12 +37,17 @@ namespace NAppProfiler.Server.Index
         private Field fDtl_LogName;
         private NumericField fDtl_Elapsed;
 
-        public NAppIndexUpdater(Configuration.ConfigManager config)
+        public NAppIndexUpdater(Configuration.ConfigManager config, Database currentDb)
         {
             indexFullPath = config.GetSetting(SettingKeys.Index_Directory, System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Index"));
             indexFullPath = System.IO.Path.GetFullPath(indexFullPath);
             directory = FSDirectory.Open(new System.IO.DirectoryInfo(indexFullPath));
-            db = new Database(config);
+            this.currentDb = currentDb;
+        }
+
+        public int UpdateBatchSize
+        {
+            get { return 50; }
         }
 
         private void InitializeDocumentCache()
@@ -84,14 +89,13 @@ namespace NAppProfiler.Server.Index
         {
             SetIndexWriter();
             InitializeDocumentCache();
-            db.InitializeDatabase();
         }
 
         public long UpdateIndex()
         {
             long ret = 0;
-            var logIds = db.GetLogsToIndex(50);
-            while (logIds.Count > 0)
+            var logIds = currentDb.GetLogsToIndex(this.UpdateBatchSize);
+            if (logIds.Count > 0)
             {
                 var logArray = new long[logIds.Count];
                 var idArray = new long[logIds.Count];
@@ -100,15 +104,15 @@ namespace NAppProfiler.Server.Index
                     idArray[i] = logIds[i].Item1;
                     logArray[i] = logIds[i].Item2;
                 }
-                var logEntries = db.RetrieveLogByIDs(logArray);
+                var logEntries = currentDb.RetrieveLogByIDs(logArray);
                 foreach (var log in logEntries)
                 {
                     AddDocumentToIndex(log.ID, log.Data);
                     ret++;
                 }
                 //writer.Commit();
-                db.DeleteIndexRows(idArray);
-                logIds = db.GetLogsToIndex(50);
+                currentDb.DeleteIndexRows(idArray);
+                //logIds = db.GetLogsToIndex(50);
             }
             writer.Commit();
             return ret;
@@ -118,7 +122,7 @@ namespace NAppProfiler.Server.Index
         {
             long ret = 0;
             SetIndexWriter(true);
-            db.AddAllLogsToReindex();
+            currentDb.AddAllLogsToReindex();
             ret = UpdateIndex();
             return ret;
         }
@@ -199,10 +203,6 @@ namespace NAppProfiler.Server.Index
             if (directory != null)
             {
                 directory.Dispose();
-            }
-            if (db != null)
-            {
-                db.Dispose();
             }
         }
     }

@@ -130,7 +130,7 @@ namespace NAppProfiler.Server.Manager
         {
             if (!Int32.TryParse(config.GetSetting(SettingKeys.Manager_MaxTasks), out maxTasks))
             {
-                maxTasks = Environment.ProcessorCount - 1;
+                maxTasks = Environment.ProcessorCount - 2;
                 if (maxTasks <= 0)
                 {
                     maxTasks = 1;

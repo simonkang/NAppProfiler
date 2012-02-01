@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using NAppProfiler.Server.Configuration;
 using NAppProfiler.Server.Essent;
+using NAppProfiler.Server.Index;
 using NLog;
 
 namespace NAppProfiler.Server.Manager
@@ -16,6 +17,8 @@ namespace NAppProfiler.Server.Manager
         private readonly ConfigManager config;
         private readonly Database currentDb;
         private readonly JobQueueManager manager;
+        private readonly NAppIndexReader indexReader;
+        private readonly NAppIndexUpdater indexUpdater;
 
         private int stopping;
         private bool traceEnabled;
@@ -28,11 +31,15 @@ namespace NAppProfiler.Server.Manager
         public Job(ConfigManager config, JobQueueManager manager, bool IsDatabaseTask, bool traceEnabled)
         {
             this.config = config;
+            this.manager = manager;
             if (IsDatabaseTask)
             {
                 currentDb = new Database(config);
                 currentDb.InitializeDatabase();
+                indexUpdater = new NAppIndexUpdater(config, currentDb);
+                indexUpdater.Initialize();
             }
+            indexReader = new NAppIndexReader(config);
 
             this.traceEnabled = traceEnabled;
         }
@@ -41,7 +48,7 @@ namespace NAppProfiler.Server.Manager
 
         public void Start(JobQueue queue, bool alwaysRunning)
         {
-            var processor = new JobProcessor(config, currentDb);
+            var processor = new JobProcessor(config, currentDb, manager, indexUpdater, indexReader);
             var running = true;
             while (running)
             {
@@ -116,6 +123,14 @@ namespace NAppProfiler.Server.Manager
             if (currentDb != null)
             {
                 currentDb.Dispose();
+            }
+            if (indexUpdater != null)
+            {
+                indexUpdater.Dispose();
+            }
+            if (indexReader != null)
+            {
+                indexReader.Dispose();
             }
         }
     }
