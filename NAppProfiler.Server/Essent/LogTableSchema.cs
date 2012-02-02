@@ -110,7 +110,7 @@ namespace NAppProfiler.Server.Essent
                     var createLong = (long)Api.RetrieveColumnAsInt64(session, logTable, colID_Created);
                     var elapsedLong = (long)Api.RetrieveColumnAsInt64(session, logTable, colID_Elapsed);
                     var data = Api.RetrieveColumn(session, logTable, colID_Data);
-                    ret.Add(new LogEntity(ids[i], new DateTime(createLong), new TimeSpan(elapsedLong), data));
+                    ret.Add(new LogEntity(ids[i], new DateTime(createLong, DateTimeKind.Utc), new TimeSpan(elapsedLong), data));
                 }
             }
             return ret;
