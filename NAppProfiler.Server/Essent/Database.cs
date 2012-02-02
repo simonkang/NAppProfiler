@@ -22,13 +22,15 @@ namespace NAppProfiler.Server.Essent
         private JET_DBID dbid;
         private bool disposed;
 
+        private const string CurrentDatabase = "current";
+
         public Database(ConfigManager config, string directory = "")
         {
             this.config = config;
             databaseDirectory = Path.GetFullPath(GetDatabaseDirectory());
             if (string.IsNullOrWhiteSpace(directory))
             {
-                databaseDirectory = Path.Combine(databaseDirectory, "current");
+                databaseDirectory = Path.Combine(databaseDirectory, CurrentDatabase);
             }
             else
             {
@@ -169,14 +171,31 @@ namespace NAppProfiler.Server.Essent
 
         public IList<LogEntity> RetrieveLogByIDs(IList<long> ids)
         {
-            return RetrieveLogByIDs("current", ids);
+            return RetrieveLogByIDs(CurrentDatabase, ids);
         }
 
         public IList<LogEntity> RetrieveLogByIDs(string database, IList<long> ids)
         {
-            if (database.IndexOf("current", StringComparison.OrdinalIgnoreCase) >= 0)
+            if (database.IndexOf(CurrentDatabase, StringComparison.OrdinalIgnoreCase) >= 0)
             {
                 return tblSchema.RetrieveLogByIDs(session, ids);
+            }
+            else
+            {
+                return new List<LogEntity>();
+            }
+        }
+
+        public IList<LogEntity> RetrieveLogByDate(DateTime from, DateTime to)
+        {
+            return RetrieveLogByDate(CurrentDatabase, from, to);
+        }
+
+        public IList<LogEntity> RetrieveLogByDate(string database, DateTime from, DateTime to)
+        {
+            if (database.IndexOf(CurrentDatabase, StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return tblSchema.RetrieveLogByDate(session, from, to);
             }
             else
             {

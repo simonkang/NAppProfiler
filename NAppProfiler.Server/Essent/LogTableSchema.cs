@@ -116,6 +116,30 @@ namespace NAppProfiler.Server.Essent
             return ret;
         }
 
+        public IList<LogEntity> RetrieveLogByDate(JET_SESID session, DateTime from, DateTime to)
+        {
+            var ret = new List<LogEntity>();
+            Api.JetSetCurrentIndex(session, logTable, idxName_Created);
+            Api.MakeKey(session, logTable, from.Ticks, MakeKeyGrbit.NewKey);
+            if (Api.TrySeek(session, logTable, SeekGrbit.SeekGE))
+            {
+                Api.MakeKey(session, logTable, to.Ticks, MakeKeyGrbit.NewKey);
+                if (Api.TrySetIndexRange(session, logTable, SetIndexRangeGrbit.RangeInclusive | SetIndexRangeGrbit.RangeUpperLimit))
+                {
+                    do
+                    {
+                        var id = (long)Api.RetrieveColumnAsInt64(session, logTable, colID_ID);
+                        var createLong = (long)Api.RetrieveColumnAsInt64(session, logTable, colID_Created);
+                        var elapsedLong = (long)Api.RetrieveColumnAsInt64(session, logTable, colID_Elapsed);
+                        var data = Api.RetrieveColumn(session, logTable, colID_Data);
+                        ret.Add(new LogEntity(id, new DateTime(createLong, DateTimeKind.Utc), new TimeSpan(elapsedLong), data));
+                    }
+                    while (Api.TryMoveNext(session, logTable));
+                }
+            }
+            return ret;
+        }
+
         public long Count(JET_SESID session, DateTime from, DateTime to)
         {
             var ret = 0L;

@@ -184,7 +184,7 @@ namespace NAppProfiler.Server.Index
             writer.AddDocument(doc);
         }
 
-        string ConvertIPToString(byte[] data)
+        internal static string ConvertIPToString(byte[] data)
         {
             string ret = string.Concat(
                 data[0].ToString("000"),

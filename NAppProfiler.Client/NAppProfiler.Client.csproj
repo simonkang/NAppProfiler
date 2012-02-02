@@ -49,6 +49,9 @@
     <Compile Include="DTO\Log.cs" />
     <Compile Include="DTO\LogDetails.cs" />
     <Compile Include="DTO\LogParm.cs" />
+    <Compile Include="DTO\LogQuery.cs" />
+    <Compile Include="DTO\LogQueryExceptions.cs" />
+    <Compile Include="DTO\LogQueryResults.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

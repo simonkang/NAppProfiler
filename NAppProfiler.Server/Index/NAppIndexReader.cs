@@ -4,12 +4,13 @@ using System.Linq;
 using System.Text;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
+using Lucene.Net.Analysis.Tokenattributes;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Store;
 using Lucene.Net.QueryParsers;
+using NAppProfiler.Client.DTO;
 using NAppProfiler.Server.Configuration;
-using Lucene.Net.Analysis.Tokenattributes;
 
 namespace NAppProfiler.Server.Index
 {
@@ -54,6 +55,67 @@ namespace NAppProfiler.Server.Index
             {
                 var curDoc = searcher.Doc(topDocs.ScoreDocs[i].doc);
             }
+        }
+
+        public LogQueryResults Search(LogQuery query)
+        {
+            if (query.DateTime_From == DateTime.MinValue || query.DateTime_To == DateTime.MinValue)
+            {
+                throw new ArgumentException("DateTime_From or DateTime_To Not Set");
+            }
+
+            var qryStr = string.Empty;
+            if (query.ClientIP != null)
+            {
+                var ipStr = NAppIndexUpdater.ConvertIPToString(query.ClientIP);
+                qryStr = FieldKeys.ClientIP + ":" + ipStr;
+            }
+
+            if (query.ServerIP != null)
+            {
+                var ipStr = NAppIndexUpdater.ConvertIPToString(query.ServerIP);
+                qryStr += " " + FieldKeys.ServerIP + ":" + ipStr;
+            }
+
+            if (query.ShowExceptions == LogQueryExceptions.ExceptionsOnly)
+            {
+                qryStr += " " + FieldKeys.Exception + ":1";
+            }
+            else if (query.ShowExceptions == LogQueryExceptions.SuccessesOnly)
+            {
+                qryStr += " " + FieldKeys.Exception + ":0";
+            }
+
+            qryStr += AddFromToQueryString(FieldKeys.Elapsed, query.TotalElapsed_From.Ticks, query.TotalElapsed_To.Ticks, TimeSpan.Zero.Ticks);
+            qryStr += AddFromToQueryString(FieldKeys.DetailElapsed, query.DetailElapsed_From.Ticks, query.DetailElapsed_To.Ticks, TimeSpan.Zero.Ticks);
+
+            if (string.IsNullOrWhiteSpace(qryStr))
+            {
+                return new LogQueryResults();
+            }
+            var ret = new LogQueryResults();
+            return ret;
+        }
+
+        string AddFromToQueryString(string fieldName, long from, long to, long minValue)
+        {
+            var qryStr = string.Empty;
+            if (from != minValue)
+            {
+                if (to != minValue)
+                {
+                    qryStr += string.Format(" {0}:[{1} TO {2}]", fieldName, from.ToString(), to.ToString());
+                }
+                else
+                {
+                    qryStr += string.Format(" {0}:[{1} TO 9223372036854775807", fieldName, from.ToString());
+                }
+            }
+            else if (to != minValue)
+            {
+                qryStr += string.Format(" {0}:[0 to {1}]", fieldName, to.ToString());
+            }
+            return qryStr;
         }
 
         void ViewTokenTerms()

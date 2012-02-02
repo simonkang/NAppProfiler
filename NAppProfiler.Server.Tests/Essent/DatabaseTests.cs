@@ -76,6 +76,19 @@ namespace NAppProfiler.Server.Tests.Essent
         }
 
         [Test]
+        public void RetrieveRecordsByDate()
+        {
+            using (var db = new Database(new ConfigManager()))
+            {
+                db.InitializeDatabase();
+                var ret = db.RetrieveLogByDate(new DateTime(2011, 11, 5, 0, 0, 0, DateTimeKind.Utc), new DateTime(2011, 11, 10, 0, 0, 0, DateTimeKind.Utc));
+                Assert.That(ret, Is.Not.Null);
+                Assert.That(ret.Count, Is.GreaterThan(0));
+            }
+        }
+
+        [Test]
+        [Ignore]
         public void TestInsertPerformance()
         {
             using (var db = new Database(new ConfigManager()))
