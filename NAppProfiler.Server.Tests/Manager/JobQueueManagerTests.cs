@@ -141,7 +141,7 @@ namespace NAppProfiler.Server.Tests.Manager
             for (int i = 0; i < items.Length; i++)
             {
                 var createdDT = insertStart.AddTicks(interval * i);
-                var elapsed = (long)rndElapsed.Next(1, 30000);
+                var elapsed = TimeSpan.FromMilliseconds((long)rndElapsed.Next(1, 30000)).Ticks;
                 var log = new NAppProfiler.Client.DTO.Log()
                 {
                     ClientIP = new byte[] { 10, 26, 10, 142 },

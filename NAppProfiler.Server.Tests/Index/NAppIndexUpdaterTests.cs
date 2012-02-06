@@ -27,7 +27,7 @@ namespace NAppProfiler.Server.Tests.Index
                     start = DateTime.UtcNow;
 
                     var totalCount = 0L;
-                    var curCount = 0L;
+                    var curCount = 1L;
                     while (curCount > 0)
                     {
                         curCount = idxUpdate.UpdateIndex();

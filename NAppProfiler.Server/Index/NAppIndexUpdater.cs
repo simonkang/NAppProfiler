@@ -19,7 +19,6 @@ namespace NAppProfiler.Server.Index
         private readonly Database currentDb;
         private IndexWriter writer;
 
-        private Document doc;
         private NumericField fLogID;
         private Field fLogName;
         private Field fSvc;
@@ -29,13 +28,9 @@ namespace NAppProfiler.Server.Index
         private NumericField fException;
         private NumericField fCreated;
         private NumericField fElapsed;
-        private Field fDesc;
-        private Field fParms;
-
-        private Document docDetail;
-        private NumericField fDtl_LogID;
-        private Field fDtl_LogName;
-        private NumericField fDtl_Elapsed;
+        private Field fDetail_Desc;
+        private Field fDetail_Parm;
+        private NumericField fDetail_Elapsed;
 
         public NAppIndexUpdater(Configuration.ConfigManager config, Database currentDb)
         {
@@ -52,37 +47,18 @@ namespace NAppProfiler.Server.Index
 
         private void InitializeDocumentCache()
         {
-            doc = new Document();
             fLogID = new NumericField(FieldKeys.LogID, 8, Field.Store.YES, true);
-            doc.Add(fLogID);
             fLogName = new Field(FieldKeys.LogName, string.Empty, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-            doc.Add(fLogName);
             fSvc = new Field(FieldKeys.Service, string.Empty, Field.Store.NO, Field.Index.ANALYZED_NO_NORMS);
-            doc.Add(fSvc);
             fMethod = new Field(FieldKeys.Method, string.Empty, Field.Store.NO, Field.Index.ANALYZED_NO_NORMS);
-            doc.Add(fMethod);
             fClientIP = new Field(FieldKeys.ClientIP, string.Empty, Field.Store.NO, Field.Index.NOT_ANALYZED_NO_NORMS);
-            doc.Add(fClientIP);
             fServerIP = new Field(FieldKeys.ServerIP, string.Empty, Field.Store.NO, Field.Index.NOT_ANALYZED_NO_NORMS);
-            doc.Add(fServerIP);
             fException = new NumericField(FieldKeys.Exception, 1, Field.Store.NO, true);
-            doc.Add(fException);
             fCreated = new NumericField(FieldKeys.CreatedDT, 8, Field.Store.NO, true);
-            doc.Add(fCreated);
             fElapsed = new NumericField(FieldKeys.Elapsed, 8, Field.Store.NO, true);
-            doc.Add(fElapsed);
-            fDesc = new Field(FieldKeys.DetailDesc, string.Empty, Field.Store.NO, Field.Index.ANALYZED_NO_NORMS);
-            doc.Add(fDesc);
-            fParms = new Field(FieldKeys.Parms, string.Empty, Field.Store.NO, Field.Index.ANALYZED_NO_NORMS);
-            doc.Add(fParms);
-
-            docDetail = new Document();
-            fDtl_LogID = new NumericField(FieldKeys.LogID, 8, Field.Store.YES, true);
-            docDetail.Add(fDtl_LogID);
-            fDtl_LogName = new Field(FieldKeys.LogName, string.Empty, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-            docDetail.Add(fDtl_LogName);
-            fDtl_Elapsed = new NumericField(FieldKeys.DetailElapsed, 8, Field.Store.NO, true);
-            docDetail.Add(fDtl_Elapsed);
+            fDetail_Desc = new Field(FieldKeys.Detail_Desc, string.Empty, Field.Store.NO, Field.Index.ANALYZED_NO_NORMS);
+            fDetail_Parm = new Field(FieldKeys.Detail_Parm, string.Empty, Field.Store.NO, Field.Index.ANALYZED_NO_NORMS);
+            fDetail_Elapsed = new NumericField(FieldKeys.Detail_Elapsed, 8, Field.Store.NO, true);
         }
 
         public void Initialize()
@@ -150,19 +126,28 @@ namespace NAppProfiler.Server.Index
         void AddDocumentToIndex(long id, byte[] data)
         {
             var log = Log.DeserializeLog(data);
+            var doc = new Document();
             fLogID.SetLongValue(id);
+            doc.Add(fLogID);
+            fLogName.SetValue("");  // TODO: Add Log Name
+            doc.Add(fLogName);
             fSvc.SetValue(log.Service);
+            doc.Add(fSvc);
             fMethod.SetValue(log.Method);
+            doc.Add(fMethod);
             fClientIP.SetValue(ConvertIPToString(log.ClientIP));
+            doc.Add(fClientIP);
             fServerIP.SetValue(ConvertIPToString(log.ServerIP));
+            doc.Add(fServerIP);
             fException.SetIntValue(Convert.ToInt32(log.IsError));
+            doc.Add(fException);
             fCreated.SetLongValue(log.CreatedDateTime.Ticks);
+            doc.Add(fCreated);
             fElapsed.SetLongValue(log.Elapsed);
+            doc.Add(fElapsed);
 
             if (log.Details.Count > 0)
             {
-                var desc = new StringBuilder();
-                var parms = new StringBuilder();
                 for (int x = 0; x < log.Details.Count; x++)
                 {
                     var curDtl = log.Details[x];
@@ -170,27 +155,39 @@ namespace NAppProfiler.Server.Index
                     {
                         for (int y = 0; y < curDtl.Parameters.Count; y++)
                         {
-                            parms.Append(curDtl.Parameters[y].Value + " ");
+                            fDetail_Parm.SetValue(curDtl.Parameters[y].Value);
+                            doc.Add(fDetail_Parm);
                         }
                     }
-                    desc.Append(curDtl.Description + " ");
-                    fDtl_LogID.SetLongValue(id);
-                    fDtl_Elapsed.SetLongValue(curDtl.Elapsed);
-                    writer.AddDocument(docDetail);
+                    fDetail_Desc.SetValue(curDtl.Description);
+                    doc.Add(fDetail_Desc);
+
+                    fDetail_Elapsed.SetLongValue(curDtl.Elapsed);
+                    doc.Add(fDetail_Elapsed);
                 }
-                fDesc.SetValue(desc.ToString());
-                fParms.SetValue(parms.ToString());
             }
             writer.AddDocument(doc);
         }
 
         internal static string ConvertIPToString(byte[] data)
         {
-            string ret = string.Concat(
-                data[0].ToString("000"),
-                data[1].ToString("000"),
-                data[2].ToString("000"),
-                data[3].ToString("000"));
+            var ret = string.Empty;
+            if (data.Length == 8)
+            {
+                ret = string.Concat(
+                    data[4].ToString("000"),
+                    data[5].ToString("000"),
+                    data[6].ToString("000"),
+                    data[7].ToString("000"));
+            }
+            else if (data.Length == 4)
+            {
+                ret = string.Concat(
+                    data[0].ToString("000"),
+                    data[1].ToString("000"),
+                    data[2].ToString("000"),
+                    data[3].ToString("000"));
+            }
             return ret;
         }
 

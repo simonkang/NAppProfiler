@@ -16,8 +16,11 @@ namespace NAppProfiler.Server.Index
         public const string Exception = "Exception";
         public const string CreatedDT = "CreatedDT";
         public const string Elapsed = "Elapsed";
-        public const string DetailDesc = "DetailDesc";
-        public const string DetailElapsed = "DetailElapsed";
-        public const string Parms = "Parms";
+        public const string Detail_LogID = "DetailLogID";
+        public const string Detail_LogName = "DetailLogName";
+        public const string Detail_CreatedDT = "DetailCreatedDT"; 
+        public const string Detail_Desc = "DetailDesc";
+        public const string Detail_Elapsed = "DetailElapsed";
+        public const string Detail_Parm = "DetailParm";
     }
 }

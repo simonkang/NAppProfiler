@@ -43,6 +43,24 @@ namespace NAppProfiler.Server.Tests.Index
                 };
                 var ret = reader.Search(qry);
                 Assert.That(ret, Is.Not.Null);
+                Assert.That(ret.DateTime_From, Is.EqualTo(qry.DateTime_From));
+                Assert.That(ret.DateTime_To, Is.EqualTo(qry.DateTime_To));
+            }
+        }
+
+        [Test]
+        public void SearchForElapsedGreaterThan500()
+        {
+            using (var reader = new NAppIndexReader(new ConfigManager()))
+            {
+                var qry = new LogQuery()
+                {
+                    DateTime_From = new DateTime(2011, 11, 03),
+                    DateTime_To = new DateTime(2011, 11, 06),
+                    TotalElapsed_From = TimeSpan.FromTicks(500),
+                };
+                var ret = reader.Search(qry);
+                Assert.That(ret, Is.Not.Null);
             }
         }
 
