@@ -294,12 +294,15 @@ namespace NAppProfiler.Server.Manager
             {
                 indexJob.Stop();
             }
-            for (int i = 0; i < tasks.Length; i++)
+            if (tasks != null)
             {
-                if (tasks[i] != null)
+                for (int i = 0; i < tasks.Length; i++)
                 {
-                    tasks[i].Wait(5000);
-                    tasks[i].Dispose();
+                    if (tasks[i] != null)
+                    {
+                        tasks[i].Wait(5000);
+                        tasks[i].Dispose();
+                    }
                 }
             }
             if (databaseJob != null)
