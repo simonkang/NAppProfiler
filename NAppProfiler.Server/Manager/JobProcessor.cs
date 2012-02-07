@@ -12,7 +12,7 @@ namespace NAppProfiler.Server.Manager
 {
     public class JobProcessor
     {
-        private static Logger log;
+        private static Logger nLogger;
 
         private readonly int processorQueueSize;
         private readonly Database currentDb;
@@ -31,7 +31,7 @@ namespace NAppProfiler.Server.Manager
 
         static JobProcessor()
         {
-            log = LogManager.GetCurrentClassLogger();
+            nLogger = LogManager.GetCurrentClassLogger();
         }
 
         public JobProcessor(ConfigManager config, Database currentDb, JobQueueManager manager, NAppIndexUpdater indexUpdater, NAppIndexReader indexReader)
@@ -136,7 +136,7 @@ namespace NAppProfiler.Server.Manager
             }
             catch (Exception ex)
             {
-                log.ErrorException("Insert Logs Exception", ex);
+                nLogger.ErrorException("Insert Logs Exception", ex);
             }
             finally
             {
@@ -165,7 +165,7 @@ namespace NAppProfiler.Server.Manager
             }
             catch (Exception ex)
             {
-                log.ErrorException("Retrieve Logs Exception", ex);
+                nLogger.ErrorException("Retrieve Logs Exception", ex);
             }
             finally
             {

@@ -9,11 +9,14 @@ using Lucene.Net.Store;
 using NAppProfiler.Client.DTO;
 using NAppProfiler.Server.Configuration;
 using NAppProfiler.Server.Essent;
+using NLog;
 
 namespace NAppProfiler.Server.Index
 {
     public class NAppIndexUpdater : IDisposable
     {
+        private static Logger nLogger;
+
         private readonly string indexFullPath;
         private readonly Directory directory;
         private readonly Database currentDb;
@@ -31,6 +34,11 @@ namespace NAppProfiler.Server.Index
         private Field fDetail_Desc;
         private Field fDetail_Parm;
         private NumericField fDetail_Elapsed;
+
+        static NAppIndexUpdater()
+        {
+            nLogger = LogManager.GetCurrentClassLogger();
+        }
 
         public NAppIndexUpdater(Configuration.ConfigManager config, Database currentDb)
         {
@@ -84,6 +92,10 @@ namespace NAppProfiler.Server.Index
                 foreach (var log in logEntries)
                 {
                     AddDocumentToIndex(log.ID, log.Data);
+                    if (nLogger.IsTraceEnabled)
+                    {
+                        nLogger.Trace("Index updated with log id {0}", log.ID);
+                    }
                     ret++;
                 }
                 //writer.Commit();

@@ -6,11 +6,14 @@ using System.Text;
 using System.Runtime.ConstrainedExecution;
 using Microsoft.Isam.Esent.Interop;
 using NAppProfiler.Server.Configuration;
+using NLog;
 
 namespace NAppProfiler.Server.Essent
 {
     public class Database : CriticalFinalizerObject, IDisposable
     {
+        private static Logger nLogger;
+
         private readonly Configuration.ConfigManager config;
         private readonly string databaseFullPath;
         private readonly string databaseDirectory;
@@ -23,6 +26,11 @@ namespace NAppProfiler.Server.Essent
         private bool disposed;
 
         private const string CurrentDatabase = "current";
+
+        static Database()
+        {
+            nLogger = LogManager.GetCurrentClassLogger();
+        }
 
         public Database(ConfigManager config, string directory = "")
         {
@@ -161,7 +169,12 @@ namespace NAppProfiler.Server.Essent
                 {
                     if (logs[i] != null)
                     {
-                        ret.Add(tblSchema.InsertLog(session, tran, idxSchema, logs[i]));
+                        var item = tblSchema.InsertLog(session, tran, idxSchema, logs[i]);
+                        ret.Add(item);
+                        if (nLogger.IsTraceEnabled)
+                        {
+                            nLogger.Trace("Log Inserted ID {0}", item.ToString());
+                        }
                     }
                 }
                 tran.Commit(CommitTransactionGrbit.LazyFlush);
