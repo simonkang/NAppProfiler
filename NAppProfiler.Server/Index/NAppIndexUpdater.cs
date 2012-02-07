@@ -172,21 +172,42 @@ namespace NAppProfiler.Server.Index
         internal static string ConvertIPToString(byte[] data)
         {
             var ret = string.Empty;
-            if (data.Length == 8)
-            {
-                ret = string.Concat(
-                    data[4].ToString("000"),
-                    data[5].ToString("000"),
-                    data[6].ToString("000"),
-                    data[7].ToString("000"));
-            }
-            else if (data.Length == 4)
+            if (data.Length == 4)
             {
                 ret = string.Concat(
                     data[0].ToString("000"),
                     data[1].ToString("000"),
                     data[2].ToString("000"),
                     data[3].ToString("000"));
+            }
+            else if (data.Length == 16)
+            {
+                ret = string.Concat(
+                    data[0].ToString("000"),
+                    data[1].ToString("000"),
+                    data[2].ToString("000"),
+                    data[3].ToString("000"),
+                    data[4].ToString("000"),
+                    data[5].ToString("000"),
+                    data[6].ToString("000"),
+                    data[7].ToString("000"),
+                    data[8].ToString("000"),
+                    data[9].ToString("000"),
+                    data[10].ToString("000"),
+                    data[11].ToString("000"),
+                    data[12].ToString("000"),
+                    data[13].ToString("000"),
+                    data[14].ToString("000"),
+                    data[15].ToString("000"));
+            }
+            else
+            {
+                var sb = new StringBuilder();
+                for (int i = 0; i < data.Length; i++)
+                {
+                    sb.Append(data[i].ToString("000"));
+                }
+                ret = sb.ToString();
             }
             return ret;
         }

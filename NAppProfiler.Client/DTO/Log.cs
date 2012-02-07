@@ -9,7 +9,7 @@ using ProtoBuf.Serializers;
 
 namespace NAppProfiler.Client.DTO
 {
-    [ProtoContract]
+    [ProtoContract(SkipConstructor=true)]
     public class Log
     {
         /// <summary>
