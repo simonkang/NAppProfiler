@@ -15,6 +15,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{F89580
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NAppProfiler.Client.TestClient", "NAppProfiler.Client.TestClient\NAppProfiler.Client.TestClient.csproj", "{EDA34AB6-1658-4E48-BF4C-D22CD2F57994}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -37,6 +39,10 @@ Global
 		{83D7032D-1DA5-4BB5-A895-80C7D48BB724}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{83D7032D-1DA5-4BB5-A895-80C7D48BB724}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{83D7032D-1DA5-4BB5-A895-80C7D48BB724}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EDA34AB6-1658-4E48-BF4C-D22CD2F57994}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EDA34AB6-1658-4E48-BF4C-D22CD2F57994}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EDA34AB6-1658-4E48-BF4C-D22CD2F57994}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EDA34AB6-1658-4E48-BF4C-D22CD2F57994}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

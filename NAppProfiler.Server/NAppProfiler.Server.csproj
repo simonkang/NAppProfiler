@@ -79,6 +79,9 @@
     <Compile Include="Manager\WaitEventArgs.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Sockets\Listener.cs" />
+    <Compile Include="Sockets\ReceiveStateObject.cs" />
+    <Compile Include="Sockets\ReceiveStatuses.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
