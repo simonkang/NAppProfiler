@@ -72,18 +72,18 @@ namespace NAppProfiler.Client
                         socket.Connect("127.0.0.1", 33700);
                         if (!socket.Connected)
                         {
-                            InternalClose();
+                            Close();
                         }
                     }
                     catch (SocketException)
                     {
-                        InternalClose();
+                        Close();
                     }
                 }
             }
         }
 
-        private static void InternalClose()
+        public static void Close()
         {
             if (socket != null)
             {
@@ -91,16 +91,15 @@ namespace NAppProfiler.Client
                 {
                     if (socket != null)
                     {
+                        if (socket.Connected)
+                        {
+                            socket.Shutdown(SocketShutdown.Both);
+                        }
                         socket.Close();
                         socket = null;
                     }
                 }
             }
-        }
-
-        public void Close()
-        {
-            NAppProfilerClient.InternalClose();
         }
     }
 }
