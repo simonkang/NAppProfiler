@@ -12,11 +12,9 @@ namespace NAppProfiler.Server
         static void Main(string[] args)
         {
             Console.WriteLine("Starting...");
-            using (var listener = new NAppProfiler.Server.Sockets.Listener())
             using (var queueMgr = new JobQueueManager(new ConfigManager()))
             {
                 queueMgr.Initialize();
-                listener.Initialize();
                 Console.WriteLine("Started and Listening");
                 var line = string.Empty;
                 while (!line.Equals("exit", StringComparison.InvariantCultureIgnoreCase))

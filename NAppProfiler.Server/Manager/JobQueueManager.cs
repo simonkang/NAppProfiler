@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NAppProfiler.Server.Configuration;
+using NAppProfiler.Server.Sockets;
 
 namespace NAppProfiler.Server.Manager
 {
@@ -26,6 +27,7 @@ namespace NAppProfiler.Server.Manager
         private Job indexJob;
         private int whenToStartNewTask;
         private int curNumberRunningTasks;
+        private Listener listener;
 
         // Used for Trace and Performance Tests
         private long addDBCounter;
@@ -63,6 +65,8 @@ namespace NAppProfiler.Server.Manager
 
             InitializeQueues();
             InitializeTasks();
+            listener = new Listener();
+            listener.Initialize();
 
             if (traceEnabled)
             {
@@ -312,6 +316,10 @@ namespace NAppProfiler.Server.Manager
             if (indexJob != null)
             {
                 indexJob.Dispose();
+            }
+            if (listener != null)
+            {
+                listener.Dispose();
             }
         }
     }

@@ -10,10 +10,12 @@ namespace NAppProfiler.Client
     {
         private static Socket socket;
         private static object socketLock;
+        private static DateTime lastFailTime;
 
         static NAppProfilerClient()
         {
             socketLock = new object();
+            lastFailTime = DateTime.MinValue;
         }
 
         public static void SendLog(Log log)
@@ -62,7 +64,7 @@ namespace NAppProfiler.Client
         {
             lock (socketLock)
             {
-                if (socket == null)
+                if (socket == null && (DateTime.UtcNow - lastFailTime) > TimeSpan.FromSeconds(10))
                 {
                     socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                     try
@@ -71,11 +73,13 @@ namespace NAppProfiler.Client
                         if (!socket.Connected)
                         {
                             Close();
+                            lastFailTime = DateTime.UtcNow;
                         }
                     }
                     catch (SocketException)
                     {
                         Close();
+                        lastFailTime = DateTime.UtcNow;
                     }
                 }
             }

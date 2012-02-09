@@ -110,7 +110,10 @@ namespace NAppProfiler.Server.Sockets
         {
             lock (listenerLock)
             {
-                listener.Close();
+                if (listener != null)
+                {
+                    listener.Close();
+                }
                 listener = null;
             }
         }
