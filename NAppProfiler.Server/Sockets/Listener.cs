@@ -69,25 +69,31 @@ namespace NAppProfiler.Server.Sockets
                 if (bytesReceived > 0)
                 {
                     var status = state.AppendBuffer(bytesReceived);
-                    if (state.Status == ReceiveStatuses.Finished)
+                    var doLoop = true;
+                    while (doLoop)
                     {
-                        var log = Log.DeserializeLog(state.Data);
-                        if (nLogger.IsTraceEnabled)
+                        doLoop = false;
+                        if (state.Status == ReceiveStatuses.Finished)
                         {
-                            Interlocked.Increment(ref receiveCount);
-                            nLogger.Trace("Message Received - Total Count: {0}", receiveCount.ToString("#,##0"));
+                            var log = Log.DeserializeLog(state.Data);
+                            if (nLogger.IsTraceEnabled)
+                            {
+                                Interlocked.Increment(ref receiveCount);
+                                nLogger.Trace("Message Received - Total Count: {0}", receiveCount.ToString("#,##0"));
+                            }
+                            state.Clear();
+                            if (status < bytesReceived)
+                            {
+                                status = state.AppendBuffer(bytesReceived, status);
+                                doLoop = true;
+                            }
                         }
-                        state.Clear();
-                        if (status < bytesReceived)
+                        else if (state.Status == ReceiveStatuses.InvalidData)
                         {
-                            state.AppendBuffer(bytesReceived, status);
+                            state.Clear();
+                            state.ClientSocket.Close();
+                            beginRec = false;
                         }
-                    }
-                    else if (state.Status == ReceiveStatuses.InvalidData)
-                    {
-                        state.Clear();
-                        state.ClientSocket.Close();
-                        beginRec = false;
                     }
                 }
             }

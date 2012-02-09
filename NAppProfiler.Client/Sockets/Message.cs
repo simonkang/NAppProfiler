@@ -57,53 +57,20 @@ namespace NAppProfiler.Client.Sockets
         {
             if (this.dataSize == -1)
             {
-                // First Byte Data received, set header info
-                if (startIndex + 5 >= bufferSize)
-                {
-                    this.hdr = new byte[5];
-                    this.hdrIndex = 0;
-                    for (int i = startIndex; i < bufferSize; i++)
-                    {
-                        this.hdr[hdrIndex] = buffer[i];
-                        hdrIndex++;
-                    }
-                    return -1;
-                }
-                else
-                {
-                    if (hdr == null)
-                    {
-                        this.dataSize = BitConverter.ToInt32(buffer, startIndex + 1);
-                        this.type = (MessageTypes)Convert.ToInt32(buffer[startIndex]);
-                        return AppendData(buffer, bufferSize - startIndex - 5, startIndex + 5);
-                    }
-                    else
-                    {
-                        int j = 0;
-                        for (int i = hdrIndex; i < 5; i++)
-                        {
-                            this.hdr[i] = buffer[j];
-                            j++;
-                        }
-                        this.dataSize = BitConverter.ToInt32(hdr, 1);
-                        this.type = (MessageTypes)Convert.ToInt32(hdr[0]);
-                        hdr = null;
-                        return AppendData(buffer, bufferSize - j, startIndex + j);
-                    }
-                }
+                return SetHeader(buffer, bufferSize, startIndex);
             }
             else
             {
                 var ret = -1; // more data
-                var msgEndIndex = dataSize - curPosition;
-                if (msgEndIndex < bufferSize)
+                var msgEndIndex = dataSize - curPosition + startIndex;
+                if (msgEndIndex < bufferSize + startIndex)
                 {
                     // Data is Completed
                     if (buffer[msgEndIndex] == 0xFF)
                     {
                         //Valid Delimter
-                        AppendBytes(buffer, msgEndIndex, startIndex);
-                        ret = msgEndIndex + startIndex + 1;
+                        AppendBytes(buffer, msgEndIndex - startIndex, startIndex);
+                        ret = msgEndIndex + 1;
                     }
                     else
                     {
@@ -116,6 +83,46 @@ namespace NAppProfiler.Client.Sockets
                     AppendBytes(buffer, bufferSize, startIndex);
                 }
                 return ret;
+            }
+        }
+
+        private int SetHeader(byte[] buffer, int bufferSize, int startIndex)
+        {
+            // First Byte Data received, set header info
+            if (startIndex + 5 >= bufferSize)
+            {
+                // Header continues to next buffer
+                this.hdr = new byte[5];
+                this.hdrIndex = 0;
+                for (int i = startIndex; i < bufferSize; i++)
+                {
+                    this.hdr[hdrIndex] = buffer[i];
+                    hdrIndex++;
+                }
+                return -1;
+            }
+            else
+            {
+                if (hdr == null)
+                {
+                    this.dataSize = BitConverter.ToInt32(buffer, startIndex + 1);
+                    this.type = (MessageTypes)Convert.ToInt32(buffer[startIndex]);
+                    return AppendData(buffer, bufferSize - startIndex - 5, startIndex + 5);
+                }
+                else
+                {
+                    // Append Header Info from Previous buffer
+                    int j = 0;
+                    for (int i = hdrIndex; i < 5; i++)
+                    {
+                        this.hdr[i] = buffer[j];
+                        j++;
+                    }
+                    this.dataSize = BitConverter.ToInt32(hdr, 1);
+                    this.type = (MessageTypes)Convert.ToInt32(hdr[0]);
+                    hdr = null;
+                    return AppendData(buffer, bufferSize - j, startIndex + j);
+                }
             }
         }
     }

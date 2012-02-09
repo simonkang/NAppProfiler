@@ -6,7 +6,7 @@ namespace NAppProfiler.Server.Sockets
 {
     class ReceiveStateObject
     {
-        public const int MaxBufferSize = 128;
+        public const int MaxBufferSize = 8192;
 
         private byte[] buffer;
         private Message msg;
