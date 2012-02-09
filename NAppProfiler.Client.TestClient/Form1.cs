@@ -8,6 +8,7 @@ using System.Text;
 using System.Windows.Forms;
 using NAppProfiler.Client;
 using NAppProfiler.Client.DTO;
+using System.Diagnostics;
 
 namespace NAppProfiler.Client.TestClient
 {
@@ -20,9 +21,19 @@ namespace NAppProfiler.Client.TestClient
 
         private void btnSend_Click(object sender, EventArgs e)
         {
-            var client = new NAppProfilerClient();
-            var log = CreateLog();
-            client.SendLog(log);
+            int times;
+            if (!int.TryParse(ucTimes.Text, out times))
+            {
+                times = 1;
+            }
+            var sw = Stopwatch.StartNew();
+            for (int i = 0; i < times; i++)
+            {
+                var log = CreateLog();
+                NAppProfilerClient.SendLog(log);
+            }
+            sw.Stop();
+            MessageBox.Show(string.Format("Elapsed ms: {0}\r\nElapsed ticks: {1}", sw.ElapsedMilliseconds.ToString("#,##0"), sw.ElapsedTicks.ToString("#,##0")));
         }
 
         Log CreateLog()

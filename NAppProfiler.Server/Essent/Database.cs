@@ -173,7 +173,7 @@ namespace NAppProfiler.Server.Essent
                         ret.Add(item);
                         if (nLogger.IsTraceEnabled)
                         {
-                            nLogger.Trace("Log Inserted ID {0}", item.ToString());
+                            nLogger.Trace("Log Inserted ID {0:#,##0}", item);
                         }
                     }
                 }

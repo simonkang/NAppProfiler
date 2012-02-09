@@ -7,6 +7,9 @@ namespace NAppProfiler.Client.Sockets
         private byte[] data;
         private MessageTypes type;
         private int dataSize;
+        private int curPosition;
+        private byte[] hdr;
+        private int hdrIndex;
 
         public byte[] Data { get { return data; } }
 
@@ -17,61 +20,18 @@ namespace NAppProfiler.Client.Sockets
             this.dataSize = -1;
         }
 
-        public bool AppendData(byte[] buffer, int bufferSize, int startIndex = 0)
-        {
-            if (this.dataSize == -1)
-            {
-                // First Byte Data received, set header info
-                this.dataSize = BitConverter.ToInt32(buffer, 1);
-                this.type = (MessageTypes)Convert.ToInt32(buffer[0]);
-                return AppendData(buffer, bufferSize - 5, 5);
-            }
-            else
-            {
-                var ret = false;
-                var curLen = data == null ? 0 : data.Length;
-
-                if ((curLen + bufferSize - 1) == dataSize)
-                {
-                    // Matched Data Size
-                    ret = true;
-                    if (buffer[bufferSize + startIndex - 1] != 0xFF)
-                    {
-                        // Invalid Message Delimter - Just Exit
-                        data = null;
-                    }
-                    else
-                    {
-                        AppendBytes(buffer, bufferSize - 1, startIndex, curLen);
-                    }
-                }
-                else if ((curLen + bufferSize - 5) > dataSize)
-                {
-                    // Data Larger than expected Data Size - Just Exit
-                    ret = true;
-                    data = null;
-                }
-                else
-                {
-                    AppendBytes(buffer, bufferSize, startIndex, curLen);
-                }
-                return ret;
-            }
-        }
-
-        private void AppendBytes(byte[] buffer, int bufferSize, int startIndex, int curLen)
+        private void AppendBytes(byte[] buffer, int bufferSize, int startIndex)
         {
             if (data == null)
             {
-                data = new byte[bufferSize];
+                curPosition = bufferSize;
+                data = new byte[this.dataSize];
                 System.Buffer.BlockCopy(buffer, startIndex, data, 0, bufferSize);
             }
             else
             {
-                var combined = new byte[curLen + bufferSize];
-                System.Buffer.BlockCopy(data, 0, combined, 0, curLen);
-                System.Buffer.BlockCopy(buffer, startIndex, combined, curLen, bufferSize);
-                data = combined;
+                System.Buffer.BlockCopy(buffer, startIndex, data, curPosition, bufferSize);
+                curPosition += bufferSize;
             }
         }
 
@@ -84,6 +44,79 @@ namespace NAppProfiler.Client.Sockets
             Buffer.BlockCopy(dataSize, 0, ret, 1, 4);
             Buffer.BlockCopy(data, 0, ret, 5, data.Length);
             return ret;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <param name="bufferSize"></param>
+        /// <param name="startIndex"></param>
+        /// <returns>-2:Invalid Data, -1:More Data, >=0:Done with Start Index</returns>
+        public int AppendData(byte[] buffer, int bufferSize, int startIndex)
+        {
+            if (this.dataSize == -1)
+            {
+                // First Byte Data received, set header info
+                if (startIndex + 5 >= bufferSize)
+                {
+                    this.hdr = new byte[5];
+                    this.hdrIndex = 0;
+                    for (int i = startIndex; i < bufferSize; i++)
+                    {
+                        this.hdr[hdrIndex] = buffer[i];
+                        hdrIndex++;
+                    }
+                    return -1;
+                }
+                else
+                {
+                    if (hdr == null)
+                    {
+                        this.dataSize = BitConverter.ToInt32(buffer, startIndex + 1);
+                        this.type = (MessageTypes)Convert.ToInt32(buffer[startIndex]);
+                        return AppendData(buffer, bufferSize - startIndex - 5, startIndex + 5);
+                    }
+                    else
+                    {
+                        int j = 0;
+                        for (int i = hdrIndex; i < 5; i++)
+                        {
+                            this.hdr[i] = buffer[j];
+                            j++;
+                        }
+                        this.dataSize = BitConverter.ToInt32(hdr, 1);
+                        this.type = (MessageTypes)Convert.ToInt32(hdr[0]);
+                        hdr = null;
+                        return AppendData(buffer, bufferSize - j, startIndex + j);
+                    }
+                }
+            }
+            else
+            {
+                var ret = -1; // more data
+                var msgEndIndex = dataSize - curPosition;
+                if (msgEndIndex < bufferSize)
+                {
+                    // Data is Completed
+                    if (buffer[msgEndIndex] == 0xFF)
+                    {
+                        //Valid Delimter
+                        AppendBytes(buffer, msgEndIndex, startIndex);
+                        ret = msgEndIndex + startIndex + 1;
+                    }
+                    else
+                    {
+                        //Invalid Delimter
+                        ret = -2;
+                    }
+                }
+                else
+                {
+                    AppendBytes(buffer, bufferSize, startIndex);
+                }
+                return ret;
+            }
         }
     }
 }

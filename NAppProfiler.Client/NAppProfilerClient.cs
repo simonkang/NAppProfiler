@@ -10,45 +10,43 @@ namespace NAppProfiler.Client
     {
         private static Socket socket;
         private static object socketLock;
-        private static int isSending;
 
         static NAppProfilerClient()
         {
             socketLock = new object();
-            isSending = 0;
         }
 
-        public void SendLog(Log log)
+        public static void SendLog(Log log)
         {
             var data = Log.SerializeLog(log);
             BeginSend(data);
         }
 
-        private void BeginSend(byte[] data)
+        private static void BeginSend(byte[] data)
         {
             var local = CurrentSocket();
             if (local != null)
             {
                 try
                 {
-                    while (Interlocked.CompareExchange(ref isSending, 1, 0) == 1) ;
-
                     var msg = Message.CreateMessageByte(data, MessageTypes.SendLog);
                     local.BeginSend(msg, 0, msg.Length, SocketFlags.None, new AsyncCallback(NAppProfilerClient.EndSend), local);
                 }
                 catch (SocketException)
                 {
                     Close();
-                    Interlocked.Exchange(ref isSending, 0);
                 }
             }
         }
 
         private static void EndSend(IAsyncResult ar)
         {
-            var s = (Socket)ar.AsyncState;
-            s.EndSend(ar);
-            Interlocked.Exchange(ref isSending, 0);
+            try
+            {
+                var s = (Socket)ar.AsyncState;
+                s.EndSend(ar);
+            }
+            catch { }
         }
 
         private static Socket CurrentSocket()

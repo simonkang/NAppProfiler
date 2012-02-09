@@ -32,12 +32,16 @@ namespace NAppProfiler.Server.Sockets
             this.msg = new Message();
         }
 
-        public bool AppendBuffer(int bufferSize)
+        public int AppendBuffer(int bufferSize, int startIndex = 0)
         {
-            var ret = this.msg.AppendData(buffer, bufferSize);
-            if (ret)
+            var ret = this.msg.AppendData(buffer, bufferSize, startIndex);
+            if (ret >= 0)
             {
-                this.Status = this.msg.Data == null ? ReceiveStatuses.InvalidData : ReceiveStatuses.Finished;
+                this.Status = ReceiveStatuses.Finished;
+            }
+            else if (ret == -2)
+            {
+                this.Status = ReceiveStatuses.InvalidData;
             }
             return ret;
         }

@@ -3,12 +3,14 @@ using System.Net;
 using System.Net.Sockets;
 using NAppProfiler.Client.DTO;
 using NLog;
+using System.Threading;
 
 namespace NAppProfiler.Server.Sockets
 {
     public class Listener : IDisposable
     {
         private static Logger nLogger;
+        private static int receiveCount;
 
         private Socket listener;
         private object listenerLock;
@@ -59,21 +61,34 @@ namespace NAppProfiler.Server.Sockets
 
         private static void EndReceive_Callback(IAsyncResult ar)
         {
+            var beginRec = true;
+            var state = (ReceiveStateObject)ar.AsyncState;
             try
             {
-                var state = (ReceiveStateObject)ar.AsyncState;
                 var bytesReceived = state.ClientSocket.EndReceive(ar);
                 if (bytesReceived > 0)
                 {
-                    if (state.AppendBuffer(bytesReceived))
+                    var status = state.AppendBuffer(bytesReceived);
+                    if (state.Status == ReceiveStatuses.Finished)
                     {
-                        if (state.Status == ReceiveStatuses.Finished)
+                        var log = Log.DeserializeLog(state.Data);
+                        if (nLogger.IsTraceEnabled)
                         {
-                            var log = Log.DeserializeLog(state.Data);
+                            Interlocked.Increment(ref receiveCount);
+                            nLogger.Trace("Message Received - Total Count: {0}", receiveCount.ToString("#,##0"));
                         }
                         state.Clear();
+                        if (status < bytesReceived)
+                        {
+                            state.AppendBuffer(bytesReceived, status);
+                        }
                     }
-                    state.ClientSocket.BeginReceive(state.Buffer, 0, ReceiveStateObject.MaxBufferSize, SocketFlags.None, new AsyncCallback(EndReceive_Callback), state);
+                    else if (state.Status == ReceiveStatuses.InvalidData)
+                    {
+                        state.Clear();
+                        state.ClientSocket.Close();
+                        beginRec = false;
+                    }
                 }
             }
             // Ignore Socket Exception (Foricbly closed connections)
@@ -81,6 +96,13 @@ namespace NAppProfiler.Server.Sockets
             catch (Exception ex)
             {
                 nLogger.ErrorException("Listener EndReceive", ex);
+            }
+            finally
+            {
+                if (beginRec)
+                {
+                    state.ClientSocket.BeginReceive(state.Buffer, 0, ReceiveStateObject.MaxBufferSize, SocketFlags.None, new AsyncCallback(EndReceive_Callback), state);
+                }
             }
         }
 
