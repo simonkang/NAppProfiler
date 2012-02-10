@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using NAppProfiler.Client.DTO;
-using NLog;
 using System.Threading;
+using NLog;
+using NAppProfiler.Client.DTO;
+using NAppProfiler.Server.Configuration;
+using NAppProfiler.Server.Manager;
 
 namespace NAppProfiler.Server.Sockets
 {
@@ -12,6 +14,8 @@ namespace NAppProfiler.Server.Sockets
         private static Logger nLogger;
         private static int receiveCount;
 
+        private readonly JobQueueManager manager;
+        private readonly int port;
         private Socket listener;
         private object listenerLock;
 
@@ -20,9 +24,20 @@ namespace NAppProfiler.Server.Sockets
             nLogger = LogManager.GetCurrentClassLogger();
         }
 
-        public Listener()
+        public Listener(ConfigManager config, JobQueueManager manager)
         {
             listenerLock = new object();
+            var defaultPort = 33700;
+            var portStr = config.GetSetting(SettingKeys.Socket_PortNo, defaultPort.ToString());
+            if (!int.TryParse(portStr, out this.port))
+            {
+                this.port = defaultPort;
+            }
+            else if (this.port <= 0)
+            {
+                this.port = defaultPort;
+            }
+            this.manager = manager;
         }
 
         public void Initialize()
@@ -30,7 +45,7 @@ namespace NAppProfiler.Server.Sockets
             lock (listenerLock)
             {
                 listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                var localEp = new IPEndPoint(IPAddress.Any, 33700);
+                var localEp = new IPEndPoint(IPAddress.Any, this.port);
                 listener.Bind(localEp);
                 listener.Listen(int.MaxValue);
                 listener.BeginAccept(new AsyncCallback(EndAccept_Callback), listener);

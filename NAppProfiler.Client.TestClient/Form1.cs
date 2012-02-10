@@ -65,5 +65,10 @@ namespace NAppProfiler.Client.TestClient
             };
             return ret;
         }
+
+        private void btnInit_Click(object sender, EventArgs e)
+        {
+            NAppProfilerClient.Initialize(null, txtIP.Text, 0);
+        }
     }
 }

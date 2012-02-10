@@ -20,5 +20,7 @@ namespace NAppProfiler.Server.Configuration
         public static string Manager_ProcessorQueueSize { get { return "Manager_ProcessorQueueSize"; } }
 
         public static string Trace_Logging { get { return "Trace_Logging"; } }
+
+        public static string Socket_PortNo { get { return "Socket_PortNo"; } }
     }
 }

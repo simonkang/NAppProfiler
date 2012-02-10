@@ -62,10 +62,10 @@ namespace NAppProfiler.Server.Manager
 
             databaseJob = new Job(config, this, true, traceEnabled);
             indexJob = new Job(config, this, false, traceEnabled);
+            listener = new Listener(config, this);
 
             InitializeQueues();
             InitializeTasks();
-            listener = new Listener();
             listener.Initialize();
 
             if (traceEnabled)
