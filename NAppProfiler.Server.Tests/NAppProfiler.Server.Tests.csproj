@@ -63,6 +63,7 @@
     <Compile Include="Index\NAppIndexUpdaterTests.cs" />
     <Compile Include="Manager\JobQueueManagerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Sockets\ReceiveStateObjectTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">

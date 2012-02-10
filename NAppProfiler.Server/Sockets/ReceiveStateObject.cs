@@ -4,7 +4,7 @@ using NAppProfiler.Client.Sockets;
 
 namespace NAppProfiler.Server.Sockets
 {
-    class ReceiveStateObject
+    public class ReceiveStateObject
     {
         public const int MaxBufferSize = 8192;
 

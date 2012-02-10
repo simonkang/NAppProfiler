@@ -110,6 +110,5 @@ namespace NAppProfiler.Client.Tests.Sockets
             };
             return ret;
         }
-
     }
 }
