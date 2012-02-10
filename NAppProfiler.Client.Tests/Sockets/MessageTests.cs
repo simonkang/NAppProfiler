@@ -24,6 +24,63 @@ namespace NAppProfiler.Client.Tests.Sockets
             Assert.That(data, Is.SubsetOf(msg));
         }
 
+        [Test]
+        public void VerifyByteAppedingToMessage_AppendByteOneAtATime()
+        {
+            var msgData = Log.SerializeLog(CreateLog());
+            var data = Message.CreateMessageByte(msgData, MessageTypes.SendLog);
+            var msg = new Message();
+            var status = -3;
+            for (int i = 0; i < data.Length; i++)
+            {
+                status = msg.AppendData(new byte[] { data[i] }, 1, 0);
+            }
+            Assert.That(msg.Type, Is.EqualTo(MessageTypes.SendLog));
+            Assert.That(msg.Data, Is.EquivalentTo(msgData));
+            Assert.That(status, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void VerifyByteAppedingToMessage_AppendByteAtOnce()
+        {
+            var msgData = Log.SerializeLog(CreateLog());
+            var data = Message.CreateMessageByte(msgData, MessageTypes.SendLog);
+            var msg = new Message();
+            var status = msg.AppendData(data, data.Length, 0);
+            Assert.That(msg.Type, Is.EqualTo(MessageTypes.SendLog));
+            Assert.That(msg.Data, Is.EquivalentTo(msgData));
+            Assert.That(status, Is.EqualTo(data.Length));
+        }
+
+        [Test]
+        public void VerifyByteAppedingToMessage_AppendByte128BytesAtATime()
+        {
+            var msgData = Log.SerializeLog(CreateLog());
+            var data = Message.CreateMessageByte(msgData, MessageTypes.SendLog);
+            var msg = new Message();
+            var status = -3;
+            var step = 128;
+            for (int i = 0; i < data.Length; i += step)
+            {
+                byte[] buffer = null;
+                if ((i + step) < data.Length)
+                {
+                    buffer = new byte[step];
+                    Buffer.BlockCopy(data, i, buffer, 0, step);
+                }
+                else
+                {
+                    step = data.Length - i;
+                    buffer = new byte[step];
+                    Buffer.BlockCopy(data, i, buffer, 0, step);
+                }
+                status = msg.AppendData(buffer, buffer.Length, 0);
+            }
+            Assert.That(msg.Type, Is.EqualTo(MessageTypes.SendLog));
+            Assert.That(msg.Data, Is.EquivalentTo(msgData));
+            Assert.That(status, Is.EqualTo(step));
+        }
+
         private Log CreateLog()
         {
             var details = new List<LogDetail>();

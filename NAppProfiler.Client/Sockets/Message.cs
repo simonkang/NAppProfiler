@@ -18,6 +18,7 @@ namespace NAppProfiler.Client.Sockets
         public Message()
         {
             this.dataSize = -1;
+            this.hdrIndex = 0;
         }
 
         private void AppendBytes(byte[] buffer, int bufferSize, int startIndex)
@@ -89,11 +90,13 @@ namespace NAppProfiler.Client.Sockets
         private int SetHeader(byte[] buffer, int bufferSize, int startIndex)
         {
             // First Byte Data received, set header info
-            if (startIndex + 5 >= bufferSize)
+            if (startIndex + 5 - hdrIndex >= bufferSize)
             {
                 // Header continues to next buffer
-                this.hdr = new byte[5];
-                this.hdrIndex = 0;
+                if (hdr == null)
+                {
+                    this.hdr = new byte[5];
+                }
                 for (int i = startIndex; i < bufferSize; i++)
                 {
                     this.hdr[hdrIndex] = buffer[i];
