@@ -86,5 +86,13 @@ namespace NAppProfiler.Client.TestClient
             sw.Stop();
             MessageBox.Show(string.Format("Elapsed ms: {0}\r\nElapsed ticks: {1}", sw.ElapsedMilliseconds.ToString("#,##0"), sw.ElapsedTicks.ToString("#,##0")));
         }
+
+        private void btnQuery_Click(object sender, EventArgs e)
+        {
+            var qry = new LogQuery();
+            qry.DateTime_From = new DateTime(2011, 11, 19);
+            qry.DateTime_To = new DateTime(2011, 11, 20);
+            NAppProfilerClient.SendQuery(qry);
+        }
     }
 }

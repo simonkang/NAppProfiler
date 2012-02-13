@@ -19,7 +19,7 @@ namespace NAppProfiler.Server.Index
     {
         private readonly string indexFullPath;
         private readonly Directory directory;
-        private readonly IndexSearcher searcher;
+        //private readonly IndexSearcher searcher;
         private readonly Analyzer analyzer;
         private readonly Sort logNameIDSort;
         private readonly string[] textQueryFields;
@@ -30,7 +30,6 @@ namespace NAppProfiler.Server.Index
             indexFullPath = config.GetSetting(SettingKeys.Index_Directory, System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Index"));
             indexFullPath = System.IO.Path.GetFullPath(indexFullPath);
             directory = FSDirectory.Open(new System.IO.DirectoryInfo(indexFullPath));
-            searcher = new IndexSearcher(directory, true);
             analyzer = new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29);
 
             var sortFields = new SortField[2];
@@ -58,6 +57,7 @@ namespace NAppProfiler.Server.Index
             var qryStr = "1* AND " + FieldKeys.Method + ":Method";
             var q = qp.Parse(qryStr); //10.026.010.142");
             //var q = new TermQuery(new Term(FieldKeys.DetailDesc, "2310"));
+            var searcher = new IndexSearcher(directory, true);
             var topDocs = searcher.Search(q, null, 200);
             for (int i = 0; i < topDocs.ScoreDocs.Length; i++)
             {
@@ -138,6 +138,7 @@ namespace NAppProfiler.Server.Index
         void GetLogIDsFromMain(Query qryHeader, DateTime from, DateTime to, IList<LogQueryResultDetail> results)
         {
             var dateFilter = NumericRangeFilter.NewLongRange(FieldKeys.CreatedDT, 8, DateTime.SpecifyKind(from, DateTimeKind.Utc).Ticks, DateTime.SpecifyKind(to, DateTimeKind.Utc).Ticks, true, true);
+            var searcher = new IndexSearcher(directory, true);
             var topDocs = searcher.Search(qryHeader, dateFilter, searcher.MaxDoc());
             for (int i = 0; i < topDocs.ScoreDocs.Length; i++)
             {
@@ -191,10 +192,10 @@ namespace NAppProfiler.Server.Index
 
         public void Dispose()
         {
-            if (searcher != null)
-            {
-                searcher.Dispose();
-            }
+            //if (searcher != null)
+            //{
+            //    searcher.Dispose();
+            //}
             if (directory != null)
             {
                 directory.Dispose();

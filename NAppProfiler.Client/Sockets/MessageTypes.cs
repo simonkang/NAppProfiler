@@ -7,5 +7,6 @@ namespace NAppProfiler.Client.Sockets
         Invalid = 0,
         SendLog,
         Empty,
+        Query,
     }
 }

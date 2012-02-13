@@ -44,6 +44,19 @@ namespace NAppProfiler.Client.DTO
         [ProtoMember(10)]
         public TimeSpan DetailElapsed_To { get; set; }
 
+        [ProtoMember(11)]
+        public Guid RequestID { get; set; }
+
+        public LogQuery()
+        {
+            this.RequestID = Guid.NewGuid();
+        }
+
+        public LogQuery(Guid requestID)
+        {
+            this.RequestID = requestID;
+        }
+
         public static byte[] SerializeQuery(LogQuery item)
         {
             byte[] ret;

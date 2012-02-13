@@ -145,6 +145,9 @@ namespace NAppProfiler.Server.Sockets
                 case MessageTypes.Empty:
                     ProcessEmptyItem();
                     break;
+                case MessageTypes.Query:
+                    ProcessQueryRequest(state.Data);
+                    break;
                 default:
                     if (nLogger.IsWarnEnabled)
                     {
@@ -177,6 +180,15 @@ namespace NAppProfiler.Server.Sockets
         private void ProcessEmptyItem()
         {
             var item = new JobItem(JobMethods.Empty);
+            AddJob(item);
+        }
+
+        private void ProcessQueryRequest(byte[] data)
+        {
+            var query = LogQuery.DeserializeQuery(data);
+            var item = new JobItem(JobMethods.Index_QueryRequest);
+            item.LogQueries = new List<LogQuery>(1);
+            item.LogQueries.Add(query);
             AddJob(item);
         }
 

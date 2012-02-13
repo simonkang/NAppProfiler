@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using NAppProfiler.Client.DTO;
 using NAppProfiler.Server.Essent;
 
 namespace NAppProfiler.Server.Manager
@@ -10,7 +11,7 @@ namespace NAppProfiler.Server.Manager
     {
         // All Database Methods must be greater than 900
         public const int Empty = 0;
-        public const int Index = 101;
+        public const int Index_QueryRequest = 101;
         public const int Database_InsertLogs = 901;
         public const int Database_RetrieveLogs = 902;
         public const int Database_UpdateIndex = 903;
@@ -23,6 +24,7 @@ namespace NAppProfiler.Server.Manager
         private bool processed;
         private IList<LogEntity> logEntityItems;
         private IList<long> logIDs;
+        private IList<LogQuery> querys;
 
         public JobItem(int method)
         {
@@ -50,6 +52,12 @@ namespace NAppProfiler.Server.Manager
         {
             get { return logIDs; }
             set { logIDs = value; }
+        }
+
+        public IList<LogQuery> LogQueries
+        {
+            get { return querys; }
+            set { querys = value; }
         }
     }
 }

@@ -28,6 +28,7 @@ namespace NAppProfiler.Server.Manager
         private List<JobItem> retrieveLogItems;
         private List<JobItem> emptyLogItems;
         private bool updateIndex;
+        private List<JobItem> queryRequestItems;
 
         static JobProcessor()
         {
@@ -77,6 +78,10 @@ namespace NAppProfiler.Server.Manager
                 updateIndex = true;
                 item.Processed = true;
             }
+            else if (item.Method == JobMethods.Index_QueryRequest)
+            {
+                queryRequestItems.Add(item);
+            }
 
             if (count >= processorQueueSize)
             {
@@ -114,6 +119,7 @@ namespace NAppProfiler.Server.Manager
                     Task.Factory.StartNew(() => manager.AddJob(new JobItem(JobMethods.Database_UpdateIndex)));
                 }
             }
+            ProcessQueryRequests();
 
             count = 0;
         }
@@ -172,6 +178,23 @@ namespace NAppProfiler.Server.Manager
             {
                 retrieveLogCount = 0;
                 retrieveLogItems.Clear();
+            }
+        }
+
+        private void ProcessQueryRequests()
+        {
+            var processed = false;
+            for (int i = 0; i < queryRequestItems.Count; i++)
+            {
+                var curQueries = queryRequestItems[i].LogQueries;
+                for (int j = 0; j < curQueries.Count; j++)
+                {
+                    indexReader.Search(curQueries[j]);
+                }
+            }
+            if (processed)
+            {
+                queryRequestItems.Clear();
             }
         }
     }
