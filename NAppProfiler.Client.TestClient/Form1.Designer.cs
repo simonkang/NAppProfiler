@@ -32,6 +32,7 @@
             this.ucTimes = new System.Windows.Forms.TextBox();
             this.txtIP = new System.Windows.Forms.TextBox();
             this.btnInit = new System.Windows.Forms.Button();
+            this.btnEmpty = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // btnSend
@@ -70,11 +71,22 @@
             this.btnInit.UseVisualStyleBackColor = true;
             this.btnInit.Click += new System.EventHandler(this.btnInit_Click);
             // 
+            // btnEmpty
+            // 
+            this.btnEmpty.Location = new System.Drawing.Point(174, 98);
+            this.btnEmpty.Name = "btnEmpty";
+            this.btnEmpty.Size = new System.Drawing.Size(75, 23);
+            this.btnEmpty.TabIndex = 4;
+            this.btnEmpty.Text = "Send Empty";
+            this.btnEmpty.UseVisualStyleBackColor = true;
+            this.btnEmpty.Click += new System.EventHandler(this.btnEmpty_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(284, 262);
+            this.Controls.Add(this.btnEmpty);
             this.Controls.Add(this.btnInit);
             this.Controls.Add(this.txtIP);
             this.Controls.Add(this.ucTimes);
@@ -92,6 +104,7 @@
         private System.Windows.Forms.TextBox ucTimes;
         private System.Windows.Forms.TextBox txtIP;
         private System.Windows.Forms.Button btnInit;
+        private System.Windows.Forms.Button btnEmpty;
     }
 }
 

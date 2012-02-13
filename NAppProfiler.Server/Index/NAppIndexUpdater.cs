@@ -50,7 +50,7 @@ namespace NAppProfiler.Server.Index
 
         public int UpdateBatchSize
         {
-            get { return 50; }
+            get { return 200; }
         }
 
         private void InitializeDocumentCache()
@@ -98,11 +98,9 @@ namespace NAppProfiler.Server.Index
                     }
                     ret++;
                 }
-                //writer.Commit();
                 currentDb.DeleteIndexRows(idArray);
-                //logIds = db.GetLogsToIndex(50);
+                writer.Commit();
             }
-            writer.Commit();
             return ret;
         }
 

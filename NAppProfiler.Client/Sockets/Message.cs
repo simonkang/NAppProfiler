@@ -19,6 +19,7 @@ namespace NAppProfiler.Client.Sockets
         {
             this.dataSize = -1;
             this.hdrIndex = 0;
+            this.type = MessageTypes.Invalid;
         }
 
         private void AppendBytes(byte[] buffer, int bufferSize, int startIndex)

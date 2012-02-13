@@ -6,6 +6,10 @@ using NLog;
 using NAppProfiler.Client.DTO;
 using NAppProfiler.Server.Configuration;
 using NAppProfiler.Server.Manager;
+using NAppProfiler.Client.Sockets;
+using NAppProfiler.Server.Essent;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace NAppProfiler.Server.Sockets
 {
@@ -52,29 +56,32 @@ namespace NAppProfiler.Server.Sockets
             }
         }
 
-        private static void EndAccept_Callback(IAsyncResult ar)
+        private void EndAccept_Callback(IAsyncResult ar)
         {
-            Socket local = null;
-            try
+            if (listener != null)
             {
-                local = (Socket)ar.AsyncState;
-                var client = local.EndAccept(ar);
-                var state = new ReceiveStateObject()
+                Socket local = null;
+                try
                 {
-                    ClientSocket = client,
-                };
-                client.BeginReceive(state.Buffer, 0, ReceiveStateObject.MaxBufferSize, SocketFlags.None, new AsyncCallback(EndReceive_Callback), state);
-            }
-            finally
-            {
-                if (local != null)
+                    local = (Socket)ar.AsyncState;
+                    var client = local.EndAccept(ar);
+                    var state = new ReceiveStateObject()
+                    {
+                        ClientSocket = client,
+                    };
+                    client.BeginReceive(state.Buffer, 0, ReceiveStateObject.MaxBufferSize, SocketFlags.None, new AsyncCallback(EndReceive_Callback), state);
+                }
+                finally
                 {
-                    local.BeginAccept(new AsyncCallback(EndAccept_Callback), local);
+                    if (local != null)
+                    {
+                        local.BeginAccept(new AsyncCallback(EndAccept_Callback), local);
+                    }
                 }
             }
         }
 
-        private static void EndReceive_Callback(IAsyncResult ar)
+        private void EndReceive_Callback(IAsyncResult ar)
         {
             var beginRec = true;
             var state = (ReceiveStateObject)ar.AsyncState;
@@ -90,12 +97,7 @@ namespace NAppProfiler.Server.Sockets
                         doLoop = false;
                         if (state.Status == ReceiveStatuses.Finished)
                         {
-                            var log = Log.DeserializeLog(state.Data);
-                            if (nLogger.IsTraceEnabled)
-                            {
-                                Interlocked.Increment(ref receiveCount);
-                                nLogger.Trace("Message Received - Total Count: {0}", receiveCount.ToString("#,##0"));
-                            }
+                            ProcessItem(state);
                             state.Clear();
                             if (status < bytesReceived)
                             {
@@ -125,6 +127,51 @@ namespace NAppProfiler.Server.Sockets
                     state.ClientSocket.BeginReceive(state.Buffer, 0, ReceiveStateObject.MaxBufferSize, SocketFlags.None, new AsyncCallback(EndReceive_Callback), state);
                 }
             }
+        }
+
+        private void ProcessItem(ReceiveStateObject state)
+        {
+            switch (state.Type)
+            {
+                case MessageTypes.SendLog:
+                    ProcessSendLog(state.Data);
+                    break;
+                case MessageTypes.Empty:
+                    ProcessEmptyItem();
+                    break;
+                default:
+                    if (nLogger.IsWarnEnabled)
+                    {
+                        nLogger.Warn("Invalid Message Type Received");
+                    }
+                    break;
+            }
+            if (nLogger.IsTraceEnabled)
+            {
+                Interlocked.Increment(ref receiveCount);
+                nLogger.Trace("Message Received - Total Count: {0:#,##0}", receiveCount);
+            }
+        }
+
+        private void AddJob(JobItem job)
+        {
+            Task.Factory.StartNew(() => manager.AddJob(job));
+        }
+
+        private void ProcessSendLog(byte[] data)
+        {
+            var item = new JobItem(JobMethods.Database_InsertLogs);
+            var log = Log.DeserializeLog(data);
+            var entity = new LogEntity(log.CreatedDateTime, TimeSpan.FromTicks(log.Elapsed), data);
+            item.LogEntityItems = new List<LogEntity>(1);
+            item.LogEntityItems.Add(entity);
+            AddJob(item);
+        }
+
+        private void ProcessEmptyItem()
+        {
+            var item = new JobItem(JobMethods.Empty);
+            AddJob(item);
         }
 
         public void Dispose()

@@ -27,7 +27,7 @@ namespace NAppProfiler.Client.Sockets
             }
         }
 
-        public abstract void Send(byte[] data);
+        public abstract void Send(MessageTypes type, byte[] data);
         public abstract void Close();
     }
 }

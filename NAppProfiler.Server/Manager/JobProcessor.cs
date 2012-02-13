@@ -80,16 +80,17 @@ namespace NAppProfiler.Server.Manager
 
             if (count >= processorQueueSize)
             {
-                Flush();
+                Flush(false);
             }
         }
 
-        public void Flush()
+        public void Flush(bool finalFlush)
         {
             if (insertLogCount > 0)
             {
                 InsertLogs();
-                Task.Factory.StartNew(() => manager.AddJob(new JobItem(JobMethods.Database_UpdateIndex)));
+                updateIndex = true;
+                //Task.Factory.StartNew(() => manager.AddJob(new JobItem(JobMethods.Database_UpdateIndex)));
             }
             if (retrieveLogCount > 0)
             {
@@ -104,7 +105,7 @@ namespace NAppProfiler.Server.Manager
                 }
                 emptyLogItems.Clear();
             }
-            if (updateIndex)
+            if (updateIndex && finalFlush)
             {
                 var ret = indexUpdater.UpdateIndex();
                 updateIndex = false;

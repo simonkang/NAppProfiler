@@ -23,6 +23,11 @@ namespace NAppProfiler.Server.Sockets
             get { return msg.Data; }
         }
 
+        public MessageTypes Type
+        {
+            get { return msg.Type; }
+        }
+
         public ReceiveStatuses Status { get; private set; }
 
         public ReceiveStateObject()

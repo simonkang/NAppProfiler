@@ -70,7 +70,7 @@ namespace NAppProfiler.Server.Manager
                     }
                     curSize = queue.Size();
                 }
-                processor.Flush();
+                processor.Flush(true);
                 running = Wait(queue, alwaysRunning, processor.ProcessCount);
             }
         }

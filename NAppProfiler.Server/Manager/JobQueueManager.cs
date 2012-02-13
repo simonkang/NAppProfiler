@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NAppProfiler.Server.Configuration;
 using NAppProfiler.Server.Sockets;
+using NLog;
 
 namespace NAppProfiler.Server.Manager
 {
@@ -13,6 +14,7 @@ namespace NAppProfiler.Server.Manager
     {
         private static object startJobLock;
         private static object totalProcessCountLock;
+        private static Logger nLogger;
 
         private readonly ConfigManager config;
         private readonly bool traceEnabled;
@@ -35,6 +37,12 @@ namespace NAppProfiler.Server.Manager
         private Dictionary<Guid, long> processCounts;
         private long totalProcessCount;
 
+        static JobQueueManager()
+        {
+            startJobLock = new object();
+            nLogger = LogManager.GetCurrentClassLogger();
+        }
+
         public JobQueueManager(ConfigManager config)
         {
             this.config = config;
@@ -46,7 +54,6 @@ namespace NAppProfiler.Server.Manager
             {
                 fixedNoOfTasks = true;
             }
-            startJobLock = new object();
         }
 
         public event EventHandler EmptyQueue;
@@ -172,9 +179,13 @@ namespace NAppProfiler.Server.Manager
         void AddDatabaseJob(JobItem job)
         {
             AddToQueue(job, 0);
-            if (traceEnabled)
+            if (traceEnabled || nLogger.IsTraceEnabled)
             {
                 Interlocked.Increment(ref addDBCounter);
+                if (nLogger.IsTraceEnabled)
+                {
+                    nLogger.Trace("Database Job Added: {0:#,##0}", addDBCounter);
+                }
             }
         }
 
@@ -211,9 +222,13 @@ namespace NAppProfiler.Server.Manager
                 //}
             }
             AddToQueue(job, addIndex);
-            if (traceEnabled)
+            if (traceEnabled || nLogger.IsTraceEnabled)
             {
                 Interlocked.Increment(ref addIndexCounter);
+                if (nLogger.IsTraceEnabled)
+                {
+                    nLogger.Trace("Non Database job Added: {0:#,##0}", addIndexCounter);
+                }
             }
         }
 

@@ -70,5 +70,21 @@ namespace NAppProfiler.Client.TestClient
         {
             NAppProfilerClient.Initialize(null, txtIP.Text, 0);
         }
+
+        private void btnEmpty_Click(object sender, EventArgs e)
+        {
+            int times;
+            if (!int.TryParse(ucTimes.Text, out times))
+            {
+                times = 1;
+            }
+            var sw = Stopwatch.StartNew();
+            for (int i = 0; i < times; i++)
+            {
+                NAppProfilerClient.SendEmpty();
+            }
+            sw.Stop();
+            MessageBox.Show(string.Format("Elapsed ms: {0}\r\nElapsed ticks: {1}", sw.ElapsedMilliseconds.ToString("#,##0"), sw.ElapsedTicks.ToString("#,##0")));
+        }
     }
 }

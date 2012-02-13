@@ -37,7 +37,12 @@ namespace NAppProfiler.Client
         public static void SendLog(Log log)
         {
             var data = Log.SerializeLog(log);
-            CurrentSocket().Send(data);
+            CurrentSocket().Send(MessageTypes.SendLog, data);
+        }
+
+        public static void SendEmpty()
+        {
+            CurrentSocket().Send(MessageTypes.Empty, new byte[0]);
         }
 
         public static void Close()

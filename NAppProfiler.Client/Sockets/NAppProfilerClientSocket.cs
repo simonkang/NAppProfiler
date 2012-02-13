@@ -16,14 +16,14 @@ namespace NAppProfiler.Client.Sockets
             this.lastFailTime = DateTime.MinValue;
         }
 
-        public override void Send(byte[] data)
+        public override void Send(MessageTypes type, byte[] data)
         {
             var local = CurrentSocket();
             if (local != null)
             {
                 try
                 {
-                    var msg = Message.CreateMessageByte(data, MessageTypes.SendLog);
+                    var msg = Message.CreateMessageByte(data, type);
                     local.BeginSend(msg, 0, msg.Length, SocketFlags.None, new AsyncCallback(this.EndSend), local);
                 }
                 catch (SocketException)
