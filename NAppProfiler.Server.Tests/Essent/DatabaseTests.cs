@@ -42,7 +42,7 @@ namespace NAppProfiler.Server.Tests.Essent
                 }
                 db.InitializeDatabase();
                 Assert.That(File.Exists(db.DatabaseFullPath));
-                var log = new LogEntity(DateTime.Now, TimeSpan.FromMilliseconds(300), new byte[] { 4, 4, 4 });
+                var log = new LogEntity(DateTime.Now, TimeSpan.FromMilliseconds(300), false, new byte[] { 4, 4, 4 });
                 db.InsertLogs(new LogEntity[] { log });
             }
         }
@@ -53,7 +53,7 @@ namespace NAppProfiler.Server.Tests.Essent
             using (var db = new Database(new ConfigManager()))
             {
                 db.InitializeDatabase();
-                var log = new LogEntity(DateTime.Now, TimeSpan.FromMilliseconds(300), new byte[] { 3, 30, 255 });
+                var log = new LogEntity(DateTime.Now, TimeSpan.FromMilliseconds(300), false, new byte[] { 3, 30, 255 });
                 var id = db.InsertLogs(new LogEntity[] { log });
                 Assert.That(id, Is.Not.Null);
                 Assert.That(id, Is.Not.LessThanOrEqualTo(0));
@@ -129,7 +129,7 @@ namespace NAppProfiler.Server.Tests.Essent
                         Description = "Description2 " + i.ToString(),
                         Elapsed = 100,
                     });
-                    var logEnt = new LogEntity(createdDT, new TimeSpan(elapsed), NAppProfiler.Client.DTO.Log.SerializeLog(log));
+                    var logEnt = new LogEntity(createdDT, new TimeSpan(elapsed), log.IsError, NAppProfiler.Client.DTO.Log.SerializeLog(log));
                     db.InsertLogs(new LogEntity[] { logEnt });
                 }
                 stop = DateTime.UtcNow;

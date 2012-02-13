@@ -168,7 +168,7 @@ namespace NAppProfiler.Server.Tests.Manager
                 {
                     LogEntityItems = new List<Server.Essent.LogEntity>(),
                 };
-                items[i].LogEntityItems.Add(new Server.Essent.LogEntity(createdDT, new TimeSpan(elapsed), Client.DTO.Log.SerializeLog(log)));
+                items[i].LogEntityItems.Add(new Server.Essent.LogEntity(createdDT, new TimeSpan(elapsed), log.IsError, Client.DTO.Log.SerializeLog(log)));
             }
             return items;
         }

@@ -17,6 +17,7 @@ namespace NAppProfiler.Server.Sockets
     {
         private static Logger nLogger;
         private static int receiveCount;
+        private static int connectionState;
 
         private readonly JobQueueManager manager;
         private readonly int port;
@@ -53,17 +54,18 @@ namespace NAppProfiler.Server.Sockets
                 listener.Bind(localEp);
                 listener.Listen(int.MaxValue);
                 listener.BeginAccept(new AsyncCallback(EndAccept_Callback), listener);
+                Interlocked.Exchange(ref connectionState, 1);
             }
         }
 
         private void EndAccept_Callback(IAsyncResult ar)
         {
-            if (listener != null)
+            Socket local = null;
+            try
             {
-                Socket local = null;
-                try
+                local = (Socket)ar.AsyncState;
+                if (Interlocked.CompareExchange(ref connectionState, 1, 1) == 1)
                 {
-                    local = (Socket)ar.AsyncState;
                     var client = local.EndAccept(ar);
                     var state = new ReceiveStateObject()
                     {
@@ -71,12 +73,16 @@ namespace NAppProfiler.Server.Sockets
                     };
                     client.BeginReceive(state.Buffer, 0, ReceiveStateObject.MaxBufferSize, SocketFlags.None, new AsyncCallback(EndReceive_Callback), state);
                 }
-                finally
+                else
                 {
-                    if (local != null)
-                    {
-                        local.BeginAccept(new AsyncCallback(EndAccept_Callback), local);
-                    }
+                    local = null;
+                }
+            }
+            finally
+            {
+                if (local != null)
+                {
+                    local.BeginAccept(new AsyncCallback(EndAccept_Callback), local);
                 }
             }
         }
@@ -162,7 +168,7 @@ namespace NAppProfiler.Server.Sockets
         {
             var item = new JobItem(JobMethods.Database_InsertLogs);
             var log = Log.DeserializeLog(data);
-            var entity = new LogEntity(log.CreatedDateTime, TimeSpan.FromTicks(log.Elapsed), data);
+            var entity = new LogEntity(log.CreatedDateTime, TimeSpan.FromTicks(log.Elapsed), log.IsError, data);
             item.LogEntityItems = new List<LogEntity>(1);
             item.LogEntityItems.Add(entity);
             AddJob(item);
@@ -180,6 +186,7 @@ namespace NAppProfiler.Server.Sockets
             {
                 if (listener != null)
                 {
+                    Interlocked.Exchange(ref connectionState, 0);
                     listener.Close();
                 }
                 listener = null;

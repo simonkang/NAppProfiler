@@ -12,6 +12,7 @@ namespace NAppProfiler.Server.Essent
         private const string colName_ID = "id";
         private const string colName_Created = "created";
         private const string colName_Elapsed = "elapsed";
+        private const string colName_Exception = "exception";
         private const string colName_Data = "data";
         private const string idxName_Primary = "idxprimary";
         private const string idxName_Created = "idxcreated";
@@ -20,6 +21,7 @@ namespace NAppProfiler.Server.Essent
         private JET_COLUMNID colID_ID;
         private JET_COLUMNID colID_Created;
         private JET_COLUMNID colID_Elapsed;
+        private JET_COLUMNID colID_Exception;
         private JET_COLUMNID colID_Data;
 
         public void Create(JET_SESID session, JET_DBID dbid)
@@ -48,6 +50,12 @@ namespace NAppProfiler.Server.Essent
                     grbit = ColumndefGrbit.ColumnFixed | ColumndefGrbit.ColumnNotNULL,
                 }, null, 0, out c);
 
+                Api.JetAddColumn(session, tblID, colName_Exception, new JET_COLUMNDEF()
+                {
+                    coltyp = JET_coltyp.Bit,
+                    grbit = ColumndefGrbit.ColumnFixed | ColumndefGrbit.ColumnNotNULL,
+                }, null, 0, out c);
+
                 Api.JetAddColumn(session, tblID, colName_Data, new JET_COLUMNDEF()
                 {
                     coltyp = JET_coltyp.LongBinary,
@@ -71,6 +79,7 @@ namespace NAppProfiler.Server.Essent
             colID_ID = columnIDs[colName_ID];
             colID_Created = columnIDs[colName_Created];
             colID_Elapsed = columnIDs[colName_Elapsed];
+            colID_Exception = columnIDs[colName_Exception];
             colID_Data = columnIDs[colName_Data];
         }
 
@@ -91,6 +100,7 @@ namespace NAppProfiler.Server.Essent
                 ret = (long)Api.RetrieveColumnAsInt64(session, logTable, colID_ID, RetrieveColumnGrbit.RetrieveCopy);
                 Api.SetColumn(session, logTable, colID_Created, log.CreatedDateTime.Ticks);
                 Api.SetColumn(session, logTable, colID_Elapsed, log.Elapsed.Ticks);
+                Api.SetColumn(session, logTable, colID_Exception, log.Exception);
                 Api.SetColumn(session, logTable, colID_Data, log.Data);
                 updt.Save();
             }
@@ -109,8 +119,9 @@ namespace NAppProfiler.Server.Essent
                 {
                     var createLong = (long)Api.RetrieveColumnAsInt64(session, logTable, colID_Created);
                     var elapsedLong = (long)Api.RetrieveColumnAsInt64(session, logTable, colID_Elapsed);
+                    var exception = (bool)Api.RetrieveColumnAsBoolean(session, logTable, colID_Exception);
                     var data = Api.RetrieveColumn(session, logTable, colID_Data);
-                    ret.Add(new LogEntity(ids[i], new DateTime(createLong, DateTimeKind.Utc), new TimeSpan(elapsedLong), data));
+                    ret.Add(new LogEntity(ids[i], new DateTime(createLong, DateTimeKind.Utc), new TimeSpan(elapsedLong), exception, data));
                 }
             }
             return ret;
@@ -131,8 +142,9 @@ namespace NAppProfiler.Server.Essent
                         var id = (long)Api.RetrieveColumnAsInt64(session, logTable, colID_ID);
                         var createLong = (long)Api.RetrieveColumnAsInt64(session, logTable, colID_Created);
                         var elapsedLong = (long)Api.RetrieveColumnAsInt64(session, logTable, colID_Elapsed);
+                        var exception = (bool)Api.RetrieveColumnAsBoolean(session, logTable, colID_Exception);
                         var data = Api.RetrieveColumn(session, logTable, colID_Data);
-                        ret.Add(new LogEntity(id, new DateTime(createLong, DateTimeKind.Utc), new TimeSpan(elapsedLong), data));
+                        ret.Add(new LogEntity(id, new DateTime(createLong, DateTimeKind.Utc), new TimeSpan(elapsedLong), exception, data));
                     }
                     while (Api.TryMoveNext(session, logTable));
                 }
