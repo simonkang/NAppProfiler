@@ -152,6 +152,9 @@ namespace NAppProfiler.Server.Sockets
                 case MessageTypes.Query:
                     ProcessQueryRequest(state.Data, state.ClientSocket);
                     break;
+                case MessageTypes.GetLogs:
+                    ProcessLogRequest(state.Data, state.ClientSocket);
+                    break;
                 default:
                     if (nLogger.IsWarnEnabled)
                     {
@@ -194,6 +197,16 @@ namespace NAppProfiler.Server.Sockets
             var item = new JobItem(JobMethods.Index_QueryRequest);
             item.LogQueries = new List<LogQuery>(1);
             item.LogQueries.Add(query);
+            AddJob(item);
+        }
+
+        private void ProcessLogRequest(byte[] data, Socket client)
+        {
+            var request = LogQueryResults.DeserializeLog(data);
+            request.ClientSocket = client;
+            var item = new JobItem(JobMethods.Database_RetrieveLogs);
+            item.QueryResults = new List<LogQueryResults>(1);
+            item.QueryResults.Add(request);
             AddJob(item);
         }
 

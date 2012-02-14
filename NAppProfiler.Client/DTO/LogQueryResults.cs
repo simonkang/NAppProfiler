@@ -27,6 +27,11 @@ namespace NAppProfiler.Client.DTO
 
         public Socket ClientSocket { get; set; }
 
+        public LogQueryResults()
+        {
+            this.RequestID = Guid.NewGuid();
+        }
+
         public byte[] Serialize()
         {
             byte[] ret = null;

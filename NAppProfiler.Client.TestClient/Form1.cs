@@ -73,7 +73,20 @@ namespace NAppProfiler.Client.TestClient
 
         private void OnMessageArrived(NAppProfiler.Client.Sockets.Message msg)
         {
-            MessageBox.Show("Msg Arrived");
+            switch (msg.Type)
+            {
+                case Sockets.MessageTypes.Results:
+                    ProcessResults(msg.Data);
+                    break;
+            }
+        }
+
+        private void ProcessResults(byte[] data)
+        {
+            var results = LogQueryResults.DeserializeLog(data);
+            var idRequest = new LogQueryResults() { IncludeData = true };
+            idRequest.LogIDs = results.LogIDs.Take(100).ToList();
+            NAppProfilerClient.SendLogRequest(idRequest);
         }
 
         private void btnEmpty_Click(object sender, EventArgs e)

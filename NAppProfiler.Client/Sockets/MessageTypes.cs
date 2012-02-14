@@ -9,5 +9,6 @@ namespace NAppProfiler.Client.Sockets
         Empty,
         Query,
         Results,
+        GetLogs,
     }
 }
