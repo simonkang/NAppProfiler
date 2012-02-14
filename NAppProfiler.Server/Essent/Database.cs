@@ -7,6 +7,7 @@ using System.Runtime.ConstrainedExecution;
 using Microsoft.Isam.Esent.Interop;
 using NAppProfiler.Server.Configuration;
 using NLog;
+using NAppProfiler.Client.DTO;
 
 namespace NAppProfiler.Server.Essent
 {
@@ -182,21 +183,14 @@ namespace NAppProfiler.Server.Essent
             return ret;
         }
 
-        public IList<LogEntity> RetrieveLogByIDs(IList<long> ids)
+        public void RetrieveLogsBySearchResults(params LogQueryResults[] results)
         {
-            return RetrieveLogByIDs(CurrentDatabase, ids);
+            RetrieveLogsBySearchResults(CurrentDatabase, results);
         }
 
-        public IList<LogEntity> RetrieveLogByIDs(string database, IList<long> ids)
+        public void RetrieveLogsBySearchResults(string database, params LogQueryResults[] results)
         {
-            if (database.IndexOf(CurrentDatabase, StringComparison.OrdinalIgnoreCase) >= 0)
-            {
-                return tblSchema.RetrieveLogByIDs(session, ids);
-            }
-            else
-            {
-                return new List<LogEntity>();
-            }
+            GetDatabase(database).RetrieveLogByIDs(session, results);
         }
 
         public IList<LogEntity> RetrieveLogByDate(DateTime from, DateTime to)
@@ -206,14 +200,7 @@ namespace NAppProfiler.Server.Essent
 
         public IList<LogEntity> RetrieveLogByDate(string database, DateTime from, DateTime to)
         {
-            if (database.IndexOf(CurrentDatabase, StringComparison.OrdinalIgnoreCase) >= 0)
-            {
-                return tblSchema.RetrieveLogByDate(session, from, to);
-            }
-            else
-            {
-                return new List<LogEntity>();
-            }
+            return GetDatabase(database).RetrieveLogByDate(session, from, to);
         }
 
         public long Count(DateTime from, DateTime to)
@@ -261,6 +248,18 @@ namespace NAppProfiler.Server.Essent
                 curData = GetLogsToIndex(50);
             }
             tblSchema.ReAddAllLogsToIndex(session, idxSchema);
+        }
+
+        private LogTableSchema GetDatabase(string database)
+        {
+            if (database.IndexOf(CurrentDatabase, StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return tblSchema;
+            }
+            else
+            {
+                return null;
+            }
         }
     }
 }

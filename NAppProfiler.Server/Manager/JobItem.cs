@@ -23,7 +23,7 @@ namespace NAppProfiler.Server.Manager
 
         private bool processed;
         private IList<LogEntity> logEntityItems;
-        private IList<long> logIDs;
+        private IList<LogQueryResults> logIDs;
         private IList<LogQuery> querys;
 
         public JobItem(int method)
@@ -48,7 +48,7 @@ namespace NAppProfiler.Server.Manager
             set { logEntityItems = value; }
         }
 
-        public IList<long> LogIDs
+        public IList<LogQueryResults> LogIDs
         {
             get { return logIDs; }
             set { logIDs = value; }

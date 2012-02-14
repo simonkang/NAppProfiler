@@ -81,17 +81,18 @@ namespace NAppProfiler.Server.Index
             var logIds = currentDb.GetLogsToIndex(this.UpdateBatchSize);
             if (logIds.Count > 0)
             {
-                var logArray = new long[logIds.Count];
+                var search = new LogQueryResults(){ IncludeData = true};
+                search.LogIDs = new List<LogQueryResultDetail>(logIds.Count);
                 var idArray = new long[logIds.Count];
                 for (int i = 0; i < logIds.Count; i++)
                 {
                     idArray[i] = logIds[i].Item1;
-                    logArray[i] = logIds[i].Item2;
+                    search.LogIDs.Add(new LogQueryResultDetail() { ID = logIds[i].Item2 });
                 }
-                var logEntries = currentDb.RetrieveLogByIDs(logArray);
-                foreach (var log in logEntries)
+                currentDb.RetrieveLogsBySearchResults(search);
+                foreach (var log in search.LogIDs)
                 {
-                    AddDocumentToIndex(log.ID, log.Data);
+                    AddDocumentToIndex(log.ID, log.Log);
                     if (nLogger.IsTraceEnabled)
                     {
                         nLogger.Trace("Index updated with log id {0}", log.ID);
@@ -133,9 +134,8 @@ namespace NAppProfiler.Server.Index
             writer.SetMergeFactor(100);
         }
 
-        void AddDocumentToIndex(long id, byte[] data)
+        void AddDocumentToIndex(long id, Log log)
         {
-            var log = Log.DeserializeLog(data);
             var doc = new Document();
             fLogID.SetLongValue(id);
             doc.Add(fLogID);

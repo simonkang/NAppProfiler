@@ -8,6 +8,7 @@ using NUnit.Framework;
 using NUnit.Framework.Constraints;
 using NAppProfiler.Server.Configuration;
 using NAppProfiler.Server.Essent;
+using NAppProfiler.Client.DTO;
 
 namespace NAppProfiler.Server.Tests.Essent
 {
@@ -66,12 +67,12 @@ namespace NAppProfiler.Server.Tests.Essent
             using (var db = new Database(new ConfigManager()))
             {
                 db.InitializeDatabase();
-                var ids = new List<long>(1);
-                ids.Add(1);
-                var log = db.RetrieveLogByIDs(ids);
-                Assert.IsNotNull(log);
-                Assert.AreEqual(1, log.Count);
-                Assert.AreEqual(1, log[0].ID);
+                var search = new LogQueryResults() { IncludeData = true };
+                search.LogIDs = new List<LogQueryResultDetail>();
+                search.LogIDs.Add(new LogQueryResultDetail() { ID = 1 });
+                db.RetrieveLogsBySearchResults(search);
+                Assert.AreEqual(1, search.LogIDs[0].ID);
+                Assert.That(search.LogIDs[0].Log, Is.Not.Null);
             }
         }
 
@@ -139,8 +140,11 @@ namespace NAppProfiler.Server.Tests.Essent
                 start = DateTime.UtcNow;
                 for (int i = 1; i < 200001; i++)
                 {
-                    var log = db.RetrieveLogByIDs(new long[] { (long)i });
-                    var logDe = NAppProfiler.Client.DTO.Log.DeserializeLog(log[0].Data);
+                    var search = new LogQueryResults(){IncludeData = true};
+                    search.LogIDs = new List<LogQueryResultDetail>();
+                    search.LogIDs.Add(new LogQueryResultDetail(){ID = i});
+                    db.RetrieveLogsBySearchResults(search);
+                    var logDe = search.LogIDs[0].Log;
                 }
                 stop = DateTime.UtcNow;
                 ts = stop - start;

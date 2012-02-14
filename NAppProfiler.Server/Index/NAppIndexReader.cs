@@ -71,7 +71,6 @@ namespace NAppProfiler.Server.Index
             {
                 throw new ArgumentException("DateTime_From or DateTime_To Not Set");
             }
-
             var qryHeader = new BooleanQuery();
 
             if (!string.IsNullOrWhiteSpace(query.Text))

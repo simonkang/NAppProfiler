@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.Isam.Esent.Interop;
+using NAppProfiler.Client.DTO;
 
 namespace NAppProfiler.Server.Essent
 {
@@ -91,7 +92,6 @@ namespace NAppProfiler.Server.Essent
             }
         }
 
-        //TODO: Transactions can not be used on multiple threads (shared session)
         public long InsertLog(JET_SESID session, Transaction tran, IndexTableSchema idxSchema, LogEntity log) // DateTime createdDateTime, long elapsed, byte[] data)
         {
             long ret = 0;
@@ -108,23 +108,28 @@ namespace NAppProfiler.Server.Essent
             return ret;
         }
 
-        public IList<LogEntity> RetrieveLogByIDs(JET_SESID session, IList<long> ids)
+        public void RetrieveLogByIDs(JET_SESID session, params LogQueryResults[] results)
         {
-            var ret = new List<LogEntity>(ids.Count);
             Api.JetSetCurrentIndex(session, logTable, idxName_Primary);
-            for (int i = 0; i < ids.Count; i++)
+            for (int i = 0; i < results.Length; i++)
             {
-                Api.MakeKey(session, logTable, ids[i], MakeKeyGrbit.NewKey);
-                if (Api.TrySeek(session, logTable, SeekGrbit.SeekEQ))
+                var curResult = results[i];
+                for (int j = 0; j < curResult.LogIDs.Count; j++)
                 {
-                    var createLong = (long)Api.RetrieveColumnAsInt64(session, logTable, colID_Created);
-                    var elapsedLong = (long)Api.RetrieveColumnAsInt64(session, logTable, colID_Elapsed);
-                    var exception = (bool)Api.RetrieveColumnAsBoolean(session, logTable, colID_Exception);
-                    var data = Api.RetrieveColumn(session, logTable, colID_Data);
-                    ret.Add(new LogEntity(ids[i], new DateTime(createLong, DateTimeKind.Utc), new TimeSpan(elapsedLong), exception, data));
+                    var curDetail = curResult.LogIDs[j];
+                    Api.MakeKey(session, logTable, curDetail.ID, MakeKeyGrbit.NewKey);
+                    if (Api.TrySeek(session, logTable, SeekGrbit.SeekEQ))
+                    {
+                        curDetail.CreatedDateTime = new DateTime((long)Api.RetrieveColumnAsInt64(session, logTable, colID_Created), DateTimeKind.Utc);
+                        curDetail.Elapsed = (long)Api.RetrieveColumnAsInt64(session, logTable, colID_Elapsed);
+                        curDetail.IsError = (bool)Api.RetrieveColumnAsBoolean(session, logTable, colID_Exception);
+                        if (curResult.IncludeData)
+                        {
+                            curDetail.Log = Log.DeserializeLog(Api.RetrieveColumn(session, logTable, colID_Data));
+                        }
+                    }
                 }
             }
-            return ret;
         }
 
         public IList<LogEntity> RetrieveLogByDate(JET_SESID session, DateTime from, DateTime to)

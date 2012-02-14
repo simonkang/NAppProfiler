@@ -11,5 +11,17 @@ namespace NAppProfiler.Client.DTO
 
         [ProtoMember(2)]
         public long ID { get; set; }
+
+        [ProtoMember(3)]
+        public DateTime CreatedDateTime { get; set; }
+
+        [ProtoMember(4)]
+        public long Elapsed { get; set; }
+
+        [ProtoMember(5)]
+        public bool IsError { get; set; }
+
+        [ProtoMember(6)]
+        public Log Log { get; set; }
     }
 }

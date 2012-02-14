@@ -16,5 +16,11 @@ namespace NAppProfiler.Client.DTO
 
         [ProtoMember(3)]
         public IList<LogQueryResultDetail> LogIDs { get; set; }
+
+        [ProtoMember(4)]
+        public Guid RequestID { get; set; }
+
+        [ProtoMember(5)]
+        public bool IncludeData { get; set; }
     }
 }

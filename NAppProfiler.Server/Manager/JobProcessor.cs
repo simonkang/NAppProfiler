@@ -7,6 +7,7 @@ using NAppProfiler.Server.Configuration;
 using NAppProfiler.Server.Essent;
 using NAppProfiler.Server.Index;
 using System.Threading.Tasks;
+using NAppProfiler.Client.DTO;
 
 namespace NAppProfiler.Server.Manager
 {
@@ -45,9 +46,14 @@ namespace NAppProfiler.Server.Manager
             {
                 this.processorQueueSize = 64;
             }
+        }
+
+        private void InitializeLists()
+        {
             insertLogItems = new List<JobItem>(processorQueueSize);
             retrieveLogItems = new List<JobItem>(processorQueueSize);
             emptyLogItems = new List<JobItem>(processorQueueSize);
+            queryRequestItems = new List<JobItem>(processorQueueSize);         
         }
 
         public long ProcessCount
@@ -110,16 +116,27 @@ namespace NAppProfiler.Server.Manager
                 }
                 emptyLogItems.Clear();
             }
-            if (updateIndex && finalFlush)
+            ProcessQueryRequests();
+            if (finalFlush)
             {
-                var ret = indexUpdater.UpdateIndex();
-                updateIndex = false;
-                if (ret >= indexUpdater.UpdateBatchSize)
+                if (updateIndex)
                 {
-                    Task.Factory.StartNew(() => manager.AddJob(new JobItem(JobMethods.Database_UpdateIndex)));
+                    var ret = indexUpdater.UpdateIndex();
+                    updateIndex = false;
+                    if (ret >= indexUpdater.UpdateBatchSize)
+                    {
+                        Task.Factory.StartNew(() => manager.AddJob(new JobItem(JobMethods.Database_UpdateIndex)));
+                    }
+                    else
+                    {
+                        InitializeLists();
+                    }
+                }
+                else
+                {
+                    InitializeLists();
                 }
             }
-            ProcessQueryRequests();
 
             count = 0;
         }
@@ -154,7 +171,7 @@ namespace NAppProfiler.Server.Manager
 
         private void RetrieveLogs()
         {
-            var idArray = new List<long>(retrieveLogCount);
+            var idArray = new List<LogQueryResults>(retrieveLogCount);
             for (int i = 0; i < retrieveLogItems.Count; i++)
             {
                 processCount++;
@@ -168,7 +185,7 @@ namespace NAppProfiler.Server.Manager
             IList<LogEntity> ret = null;
             try
             {
-                ret = currentDb.RetrieveLogByIDs(idArray);
+                //ret = currentDb.RetrieveLogByIDs(idArray);
             }
             catch (Exception ex)
             {
@@ -189,8 +206,11 @@ namespace NAppProfiler.Server.Manager
                 var curQueries = queryRequestItems[i].LogQueries;
                 for (int j = 0; j < curQueries.Count; j++)
                 {
-                    indexReader.Search(curQueries[j]);
+                    var cur = curQueries[i];
+                    var results = indexReader.Search(cur);
+                    results.RequestID = cur.RequestID;
                 }
+                processed = true;
             }
             if (processed)
             {
