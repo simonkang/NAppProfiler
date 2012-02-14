@@ -193,16 +193,6 @@ namespace NAppProfiler.Server.Essent
             GetDatabase(database).RetrieveLogByIDs(session, results);
         }
 
-        public IList<LogEntity> RetrieveLogByDate(DateTime from, DateTime to)
-        {
-            return RetrieveLogByDate(CurrentDatabase, from, to);
-        }
-
-        public IList<LogEntity> RetrieveLogByDate(string database, DateTime from, DateTime to)
-        {
-            return GetDatabase(database).RetrieveLogByDate(session, from, to);
-        }
-
         public long Count(DateTime from, DateTime to)
         {
             return tblSchema.Count(session, from, to);

@@ -82,9 +82,13 @@ namespace NAppProfiler.Server.Tests.Essent
             using (var db = new Database(new ConfigManager()))
             {
                 db.InitializeDatabase();
-                var ret = db.RetrieveLogByDate(new DateTime(2011, 11, 5, 0, 0, 0, DateTimeKind.Utc), new DateTime(2011, 11, 10, 0, 0, 0, DateTimeKind.Utc));
-                Assert.That(ret, Is.Not.Null);
-                Assert.That(ret.Count, Is.GreaterThan(0));
+                var search = new LogQueryResults() { IncludeData = true };
+                search.DateTime_From = new DateTime(2011, 11, 5, 0, 0, 0, DateTimeKind.Utc);
+                search.DateTime_To = new DateTime(2011, 11, 10, 0, 0, 0, DateTimeKind.Utc);
+                search.IncludeData = true;
+                db.RetrieveLogsBySearchResults(search);
+                Assert.That(search.LogIDs, Is.Not.Null);
+                Assert.That(search.LogIDs.Count, Is.GreaterThan(0));
             }
         }
 

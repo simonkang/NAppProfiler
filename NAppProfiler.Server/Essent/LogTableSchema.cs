@@ -114,27 +114,34 @@ namespace NAppProfiler.Server.Essent
             for (int i = 0; i < results.Length; i++)
             {
                 var curResult = results[i];
-                for (int j = 0; j < curResult.LogIDs.Count; j++)
+                if (curResult.LogIDs != null && curResult.LogIDs.Count > 0)
                 {
-                    var curDetail = curResult.LogIDs[j];
-                    Api.MakeKey(session, logTable, curDetail.ID, MakeKeyGrbit.NewKey);
-                    if (Api.TrySeek(session, logTable, SeekGrbit.SeekEQ))
+                    for (int j = 0; j < curResult.LogIDs.Count; j++)
                     {
-                        curDetail.CreatedDateTime = new DateTime((long)Api.RetrieveColumnAsInt64(session, logTable, colID_Created), DateTimeKind.Utc);
-                        curDetail.Elapsed = (long)Api.RetrieveColumnAsInt64(session, logTable, colID_Elapsed);
-                        curDetail.IsError = (bool)Api.RetrieveColumnAsBoolean(session, logTable, colID_Exception);
-                        if (curResult.IncludeData)
+                        var curDetail = curResult.LogIDs[j];
+                        Api.MakeKey(session, logTable, curDetail.ID, MakeKeyGrbit.NewKey);
+                        if (Api.TrySeek(session, logTable, SeekGrbit.SeekEQ))
                         {
-                            curDetail.Log = Log.DeserializeLog(Api.RetrieveColumn(session, logTable, colID_Data));
+                            curDetail.CreatedDateTime = new DateTime((long)Api.RetrieveColumnAsInt64(session, logTable, colID_Created), DateTimeKind.Utc);
+                            curDetail.Elapsed = (long)Api.RetrieveColumnAsInt64(session, logTable, colID_Elapsed);
+                            curDetail.IsError = (bool)Api.RetrieveColumnAsBoolean(session, logTable, colID_Exception);
+                            if (curResult.IncludeData)
+                            {
+                                curDetail.Log = Log.DeserializeLog(Api.RetrieveColumn(session, logTable, colID_Data));
+                            }
                         }
                     }
+                }
+                else
+                {
+                    curResult.LogIDs = RetrieveLogByDate(session, curResult.DateTime_From, curResult.DateTime_To, curResult.IncludeData);
                 }
             }
         }
 
-        public IList<LogEntity> RetrieveLogByDate(JET_SESID session, DateTime from, DateTime to)
+        public IList<LogQueryResultDetail> RetrieveLogByDate(JET_SESID session, DateTime from, DateTime to, bool includeData)
         {
-            var ret = new List<LogEntity>();
+            var ret = new List<LogQueryResultDetail>();
             Api.JetSetCurrentIndex(session, logTable, idxName_Created);
             Api.MakeKey(session, logTable, from.Ticks, MakeKeyGrbit.NewKey);
             if (Api.TrySeek(session, logTable, SeekGrbit.SeekGE))
@@ -144,12 +151,16 @@ namespace NAppProfiler.Server.Essent
                 {
                     do
                     {
-                        var id = (long)Api.RetrieveColumnAsInt64(session, logTable, colID_ID);
-                        var createLong = (long)Api.RetrieveColumnAsInt64(session, logTable, colID_Created);
-                        var elapsedLong = (long)Api.RetrieveColumnAsInt64(session, logTable, colID_Elapsed);
-                        var exception = (bool)Api.RetrieveColumnAsBoolean(session, logTable, colID_Exception);
-                        var data = Api.RetrieveColumn(session, logTable, colID_Data);
-                        ret.Add(new LogEntity(id, new DateTime(createLong, DateTimeKind.Utc), new TimeSpan(elapsedLong), exception, data));
+                        var cur = new LogQueryResultDetail();
+                        cur.ID = (long)Api.RetrieveColumnAsInt64(session, logTable, colID_ID);
+                        cur.CreatedDateTime = new DateTime((long)Api.RetrieveColumnAsInt64(session, logTable, colID_Created), DateTimeKind.Utc);
+                        cur.Elapsed = (long)Api.RetrieveColumnAsInt64(session, logTable, colID_Elapsed);
+                        cur.IsError = (bool)Api.RetrieveColumnAsBoolean(session, logTable, colID_Exception);
+                        if (includeData)
+                        {
+                            cur.Log = Log.DeserializeLog(Api.RetrieveColumn(session, logTable, colID_Data));
+                        }
+                        ret.Add(cur);
                     }
                     while (Api.TryMoveNext(session, logTable));
                 }

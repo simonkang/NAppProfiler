@@ -90,8 +90,8 @@ namespace NAppProfiler.Client.TestClient
         private void btnQuery_Click(object sender, EventArgs e)
         {
             var qry = new LogQuery();
-            qry.DateTime_From = new DateTime(2011, 11, 19);
-            qry.DateTime_To = new DateTime(2011, 11, 20);
+            qry.DateTime_From = new DateTime(2012, 02, 14);
+            qry.DateTime_To = new DateTime(2012, 02, 16);
             NAppProfilerClient.SendQuery(qry);
         }
     }

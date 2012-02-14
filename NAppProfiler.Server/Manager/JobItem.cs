@@ -48,7 +48,7 @@ namespace NAppProfiler.Server.Manager
             set { logEntityItems = value; }
         }
 
-        public IList<LogQueryResults> LogIDs
+        public IList<LogQueryResults> QueryResults
         {
             get { return logIDs; }
             set { logIDs = value; }

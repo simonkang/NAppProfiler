@@ -46,6 +46,7 @@ namespace NAppProfiler.Server.Manager
             {
                 this.processorQueueSize = 64;
             }
+            InitializeLists();
         }
 
         private void InitializeLists()
@@ -73,7 +74,7 @@ namespace NAppProfiler.Server.Manager
             else if (item.Method == JobMethods.Database_RetrieveLogs)
             {
                 retrieveLogItems.Add(item);
-                retrieveLogCount += item.LogIDs.Count;
+                retrieveLogCount += item.QueryResults.Count;
             }
             else if (item.Method == JobMethods.Empty)
             {
@@ -171,21 +172,9 @@ namespace NAppProfiler.Server.Manager
 
         private void RetrieveLogs()
         {
-            var idArray = new List<LogQueryResults>(retrieveLogCount);
-            for (int i = 0; i < retrieveLogItems.Count; i++)
-            {
-                processCount++;
-                retrieveLogItems[i].Processed = true;
-                var cur = retrieveLogItems[i].LogIDs;
-                for (int lid = 0; lid < cur.Count; lid++)
-                {
-                    idArray.Add(cur[lid]);
-                }
-            }
-            IList<LogEntity> ret = null;
             try
             {
-                //ret = currentDb.RetrieveLogByIDs(idArray);
+                currentDb.RetrieveLogsBySearchResults(retrieveLogItems.SelectMany(j => j.QueryResults).ToArray());
             }
             catch (Exception ex)
             {
@@ -200,21 +189,25 @@ namespace NAppProfiler.Server.Manager
 
         private void ProcessQueryRequests()
         {
-            var processed = false;
-            for (int i = 0; i < queryRequestItems.Count; i++)
+            if (queryRequestItems.Count > 0)
             {
-                var curQueries = queryRequestItems[i].LogQueries;
-                for (int j = 0; j < curQueries.Count; j++)
+                var results = new List<LogQueryResults>();
+                for (int i = 0; i < queryRequestItems.Count; i++)
                 {
-                    var cur = curQueries[i];
-                    var results = indexReader.Search(cur);
-                    results.RequestID = cur.RequestID;
+                    var curQueries = queryRequestItems[i].LogQueries;
+                    for (int j = 0; j < curQueries.Count; j++)
+                    {
+                        var cur = curQueries[i];
+                        var curResult = indexReader.Search(cur);
+                        curResult.RequestID = cur.RequestID;
+                        curResult.IncludeData = false;
+                        results.Add(curResult);
+                    }
                 }
-                processed = true;
-            }
-            if (processed)
-            {
                 queryRequestItems.Clear();
+                var job = new JobItem(JobMethods.Database_RetrieveLogs);
+                job.QueryResults = results;
+                Task.Factory.StartNew(() => manager.AddJob(job));
             }
         }
     }
