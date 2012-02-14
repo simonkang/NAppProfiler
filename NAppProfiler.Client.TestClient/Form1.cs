@@ -68,7 +68,12 @@ namespace NAppProfiler.Client.TestClient
 
         private void btnInit_Click(object sender, EventArgs e)
         {
-            NAppProfilerClient.Initialize(null, txtIP.Text, 0);
+            NAppProfilerClient.Initialize(null, txtIP.Text, 0, new Action<NAppProfiler.Client.Sockets.Message>(OnMessageArrived));
+        }
+
+        private void OnMessageArrived(NAppProfiler.Client.Sockets.Message msg)
+        {
+            MessageBox.Show("Msg Arrived");
         }
 
         private void btnEmpty_Click(object sender, EventArgs e)

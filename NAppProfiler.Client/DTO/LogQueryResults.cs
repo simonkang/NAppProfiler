@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using ProtoBuf;
 using ProtoBuf.Serializers;
+using System.Net.Sockets;
+using System.IO;
 
 namespace NAppProfiler.Client.DTO
 {
@@ -22,5 +24,28 @@ namespace NAppProfiler.Client.DTO
 
         [ProtoMember(5)]
         public bool IncludeData { get; set; }
+
+        public Socket ClientSocket { get; set; }
+
+        public byte[] Serialize()
+        {
+            byte[] ret = null;
+            using (var ms = new MemoryStream())
+            {
+                Serializer.Serialize<LogQueryResults>(ms, this);
+                ret = ms.ToArray();
+            }
+            return ret;
+        }
+
+        public static LogQueryResults DeserializeLog(byte[] data)
+        {
+            LogQueryResults ret = null;
+            using (var ms = new MemoryStream(data))
+            {
+                ret = Serializer.Deserialize<LogQueryResults>(ms);
+            }
+            return ret;
+        }
     }
 }

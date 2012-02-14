@@ -9,8 +9,8 @@ namespace NAppProfiler.Client.Sockets
         private object socketLock;
         private DateTime lastFailTime;
 
-        public NAppProfilerClientSocket(string host, int port)
-            : base(host, port)
+        public NAppProfilerClientSocket(string host, int port, Action<Message> onMessageArrived)
+            : base(host, port, onMessageArrived)
         {
             this.socketLock = new object();
             this.lastFailTime = DateTime.MinValue;
@@ -73,26 +73,52 @@ namespace NAppProfiler.Client.Sockets
 
         private void Connect()
         {
-            lock (socketLock)
+            if (socket == null && (DateTime.UtcNow - lastFailTime) > TimeSpan.FromSeconds(10))
             {
-                if (socket == null && (DateTime.UtcNow - lastFailTime) > TimeSpan.FromSeconds(10))
+                lock (socketLock)
                 {
-                    socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                    try
+                    if (socket == null && (DateTime.UtcNow - lastFailTime) > TimeSpan.FromSeconds(10))
                     {
-                        socket.Connect(this.host, this.port);
-                        if (!socket.Connected)
+                        socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                        try
+                        {
+                            socket.Connect(this.host, this.port);
+                            if (!socket.Connected)
+                            {
+                                Close();
+                                lastFailTime = DateTime.UtcNow;
+                            }
+                            else
+                            {
+                                var state = new ClientStateObject(this.onMessageArrived);
+                                state.ClientSocket = socket;
+                                socket.BeginReceive(state.Buffer, 0, ClientStateObject.MaxBufferSize, SocketFlags.None, new AsyncCallback(EndReceive_Callback), state);
+                            }
+                        }
+                        catch (SocketException)
                         {
                             Close();
                             lastFailTime = DateTime.UtcNow;
                         }
                     }
-                    catch (SocketException)
-                    {
-                        Close();
-                        lastFailTime = DateTime.UtcNow;
-                    }
                 }
+            }
+        }
+
+        private void EndReceive_Callback(IAsyncResult ar)
+        {
+            var state = (ClientStateObject)ar.AsyncState;
+            try
+            {
+                var bytesReceived = state.ClientSocket.EndReceive(ar);
+                state.AppendBuffer(bytesReceived);
+                state.ClientSocket.BeginReceive(state.Buffer, 0, ClientStateObject.MaxBufferSize, SocketFlags.None, new AsyncCallback(EndReceive_Callback), state);
+            }
+            catch (ObjectDisposedException) { }
+            catch (SocketException)
+            {
+                Close();
+                lastFailTime = DateTime.UtcNow;
             }
         }
     }

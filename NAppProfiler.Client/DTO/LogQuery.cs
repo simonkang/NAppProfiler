@@ -2,6 +2,7 @@
 using System.IO;
 using ProtoBuf;
 using ProtoBuf.Serializers;
+using System.Net.Sockets;
 
 namespace NAppProfiler.Client.DTO
 {
@@ -46,6 +47,8 @@ namespace NAppProfiler.Client.DTO
 
         [ProtoMember(11)]
         public Guid RequestID { get; set; }
+
+        public Socket ClientSocket { get; set; }
 
         public LogQuery()
         {

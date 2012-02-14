@@ -8,6 +8,8 @@ using NAppProfiler.Server.Essent;
 using NAppProfiler.Server.Index;
 using System.Threading.Tasks;
 using NAppProfiler.Client.DTO;
+using NAppProfiler.Client.Sockets;
+using System.Net.Sockets;
 
 namespace NAppProfiler.Server.Manager
 {
@@ -175,6 +177,14 @@ namespace NAppProfiler.Server.Manager
             try
             {
                 currentDb.RetrieveLogsBySearchResults(retrieveLogItems.SelectMany(j => j.QueryResults).ToArray());
+                for (int i = 0; i < retrieveLogItems.Count; i++)
+                {
+                    var cur = retrieveLogItems[i];
+                    for (int j = 0; j < cur.QueryResults.Count; j++)
+                    {
+                        SendResult(cur.QueryResults[j]);
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -185,6 +195,23 @@ namespace NAppProfiler.Server.Manager
                 retrieveLogCount = 0;
                 retrieveLogItems.Clear();
             }
+        }
+
+        private void SendResult(LogQueryResults result)
+        {
+            var data = result.Serialize();
+            var msg = Message.CreateMessageByte(data, MessageTypes.Results);
+            result.ClientSocket.BeginSend(msg, 0, msg.Length, SocketFlags.None, new AsyncCallback(EndSend), result.ClientSocket);
+        }
+
+        private void EndSend(IAsyncResult ar)
+        {
+            try
+            {
+                var socket = (Socket)ar.AsyncState;
+                socket.EndSend(ar);
+            }
+            catch (SocketException) { }
         }
 
         private void ProcessQueryRequests()
@@ -201,6 +228,7 @@ namespace NAppProfiler.Server.Manager
                         var curResult = indexReader.Search(cur);
                         curResult.RequestID = cur.RequestID;
                         curResult.IncludeData = false;
+                        curResult.ClientSocket = cur.ClientSocket;
                         results.Add(curResult);
                     }
                 }

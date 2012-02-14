@@ -119,6 +119,10 @@ namespace NAppProfiler.Server.Sockets
                         }
                     }
                 }
+                else
+                {
+                    beginRec = false;
+                }
             }
             // Ignore Socket Exception (Foricbly closed connections)
             catch (SocketException) { }
@@ -146,7 +150,7 @@ namespace NAppProfiler.Server.Sockets
                     ProcessEmptyItem();
                     break;
                 case MessageTypes.Query:
-                    ProcessQueryRequest(state.Data);
+                    ProcessQueryRequest(state.Data, state.ClientSocket);
                     break;
                 default:
                     if (nLogger.IsWarnEnabled)
@@ -183,9 +187,10 @@ namespace NAppProfiler.Server.Sockets
             AddJob(item);
         }
 
-        private void ProcessQueryRequest(byte[] data)
+        private void ProcessQueryRequest(byte[] data, Socket client)
         {
             var query = LogQuery.DeserializeQuery(data);
+            query.ClientSocket = client;
             var item = new JobItem(JobMethods.Index_QueryRequest);
             item.LogQueries = new List<LogQuery>(1);
             item.LogQueries.Add(query);

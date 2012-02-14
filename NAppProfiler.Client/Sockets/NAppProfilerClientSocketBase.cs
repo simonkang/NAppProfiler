@@ -6,8 +6,9 @@ namespace NAppProfiler.Client.Sockets
     {
         protected string host;
         protected int port;
+        protected Action<Message> onMessageArrived;
 
-        public NAppProfilerClientSocketBase(string host, int port)
+        public NAppProfilerClientSocketBase(string host, int port, Action<Message> onMessageArrived)
         {
             if (string.IsNullOrWhiteSpace(host))
             {
@@ -25,6 +26,19 @@ namespace NAppProfiler.Client.Sockets
             {
                 this.port = port;
             }
+            if (onMessageArrived != null)
+            {
+                this.onMessageArrived = onMessageArrived;
+            }
+            else
+            {
+                this.onMessageArrived = new Action<Message>(OnMessageArrivedNull);
+            }
+        }
+
+        private void OnMessageArrivedNull(Message msg)
+        {
+            //Empty Method to Disregard Messages if onMessageArrived is Not set.
         }
 
         public abstract void Send(MessageTypes type, byte[] data);

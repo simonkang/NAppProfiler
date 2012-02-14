@@ -10,14 +10,14 @@ namespace NAppProfiler.Client
 
         public static void Initialize()
         {
-            Initialize(null, null, 0);
+            Initialize(null, null, 0, null);
         }
 
-        public static void Initialize(NAppProfilerClientSocketBase comm, string host, int port)
+        public static void Initialize(NAppProfilerClientSocketBase comm, string host, int port, Action<Message> onMessageArrived)
         {
             if (comm == null)
             {
-                NAppProfilerClient.comm = new NAppProfilerClientSocket(host, port);
+                NAppProfilerClient.comm = new NAppProfilerClientSocket(host, port, onMessageArrived);
             }
             else
             {
