@@ -1,0 +1,48 @@
+﻿@{
+    ViewBag.Title = "Home";
+}
+<div id="detailView" class="modal hide fade">
+    <div class="modal-header">
+        <a class="close" data-dismiss="modal">x</a>
+        <h3>Log Details</h3>
+    </div>
+    <div class="modal-body">
+        <div class="accordion" id="a3">
+            <div class="accordion-group">
+                <div class="accordion-heading">
+                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#a3" href="#c3">
+                    <div class="container">
+                    <div class="row"> <!-- max span is 11 -->
+                    <div class="span1">ID #1 awefa wefwaef awef awe f weafw eaf awe</div>
+                    <div class="span1">ID #1 awefa wefwaef awef awe f weafw eaf awe</div>
+                    <div class="span1">ID #1 awefa wefwaef awef awe f weafw eaf awe</div>
+                    <div class="span1">ID #1 awefa wefwaef awef awe f weafw eaf awe</div>
+                    <div class="span1">ID #1 awefa wefwaef awef awe f weafw eaf awe</div>
+                    <div class="span1">ID #1 awefa wefwaef awef awe f weafw eaf awe</div>
+                    <div class="span1">ID #1 awefa wefwaef awef awe f weafw eaf awe</div>
+                    <div class="span1">ID #1 awefa wefwaef awef awe f weafw eaf awe</div>
+                    <div class="span1">ID #1 awefa wefwaef awef awe f weafw eaf awe</div>
+                    <div class="span1">ID #1 awefa wefwaef awef awe f weafw eaf awe</div>
+                    <div class="span1">ID Last</div>
+                    </div>
+                    </div>
+                    </a>
+                </div>
+                <div id="c3" class="accordion-body collapse">
+                    <div class="accordion-inner">
+                        Full Detail Information.awefew<br/>
+                    </div>
+                </div>
+            </div>
+        </div><!--accordion-->
+    </div>
+    <div class="modal-footer">
+        <a class="btn btn-primary" data-dismiss="modal">Close</a>
+    </div>
+</div><!--/modal-->
+
+<div class="log-graph">
+    <h1>Log Graph!</h1>
+    <p>Show Details</p>
+    <p><a class="btn btn-primary btn-large" data-toggle="modal" href="#detailView">Show Details &raquo;</a></p>
+</div>

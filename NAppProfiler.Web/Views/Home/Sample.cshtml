@@ -1,0 +1,95 @@
+﻿@{
+    ViewBag.Title = "Sample";
+}
+<div id="detailView" class="modal hide fade">
+    <div class="modal-header">
+        <a class="close" data-dismiss="modal">x</a>
+        <h3>Log Details</h3>
+    </div>
+    <div class="modal-body">
+        <div class="accordion" id="a1">
+            <div class="accordion-group">
+                <div class="accordion-heading">
+                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#a1" href="#c1">
+                        Detail Header
+                    </a>
+                </div>
+                <div id="c1" class="accordion-body collapse">
+                    <div class="accordion-inner">
+                        Full Detail Information.<br/>
+                    </div>
+                </div>
+            </div>
+        </div><!--accordion-->
+        <div class="accordion" id="a2">
+            <div class="accordion-group">
+                <div class="accordion-heading">
+                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#a2" href="#c2">
+                        <table class="table">
+                            <tbody>
+                                <tr>
+                                    <td>Detail Header 1</td><td>Detail Header 2</td><td>Detail Header 3</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </a>
+                </div>
+                <div id="c2" class="accordion-body collapse">
+                    <div class="accordion-inner">
+                        Full Detail Information.<br/>
+                    </div>
+                </div>
+            </div>
+        </div><!--accordion-->
+        <div class="accordion" id="a3">
+            <div class="accordion-group">
+                <div class="accordion-heading">
+                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#a3" href="#c3">
+                    <div class="container">
+                    <div class="row"> <!-- max span is 10 -->
+                    <div class="span1">ID #1 awefa wefwaef awef awe f weafw eaf awe</div>
+                    <div class="span1">ID #2 awefa wefwaef awef awe f weafw eaf awe</div>
+                    <div class="span1">ID #3 awefa wefwaef awef awe f weafw eaf awe</div>
+                    <div class="span1">ID #4 awefa wefwaef awef awe f weafw eaf awe</div>
+                    <div class="span1">ID #5 awefa wefwaef awef awe f weafw eaf awe</div>
+                    <div class="span1">ID #6 awefa wefwaef awef awe f weafw eaf awe</div>
+                    <div class="span1">ID #7 awefa wefwaef awef awe f weafw eaf awe</div>
+                    <div class="span1">ID #8 awefa wefwaef awef awe f weafw eaf awe</div>
+                    <div class="span1">ID #9 awefa wefwaef awef awe f weafw eaf awe</div>
+                    <div class="span1">ID Last</div>
+                    </div>
+                    </div>
+                    </a>
+                </div>
+                <div id="c3" class="accordion-body collapse">
+                    <div class="accordion-inner">
+                        Full Detail Information.awefew<br/>
+                        Full Detail Information.awefew<br/>
+                        Full Detail Information.awefew<br/>
+                        Full Detail Information.awefew<br/>
+                        Full Detail Information.awefew<br/>
+                        Full Detail Information.awefew<br/>
+                        Full Detail Information.awefew<br/>
+                        Full Detail Information.awefew<br/>
+                        Full Detail Information.awefew<br/>
+                        Full Detail Information.awefew<br/>
+                        Full Detail Information.awefew<br/>
+                        Full Detail Information.awefew<br/>
+                        Full Detail Information.awefew<br/>
+                        Full Detail Information.awefew<br/>
+                        Full Detail Information.awefew<br/>
+                    </div>
+                </div>
+            </div>
+        </div><!--accordion-->
+    </div>
+    <div class="modal-footer">
+        <a class="btn btn-primary" data-dismiss="modal">Close</a>
+    </div>
+</div><!--/modal-->
+
+<div class="log-graph">
+    <h1>Log Graph!</h1>
+    <p>Show Details</p>
+    <p><a class="btn btn-primary btn-large" data-toggle="modal" href="#detailView">Show Details &raquo;</a></p>
+</div>
