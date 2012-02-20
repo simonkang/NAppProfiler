@@ -33,12 +33,14 @@ namespace NAppProfiler.Server.Tests.Manager
         }
 
         [Test]
+        [Ignore]
         public void RunPerfTest_Sync()
         {
             RunTest(false, CreateEmptyJobItems());
         }
 
         [Test]
+        [Ignore]
         public void RunPerfTest_Parallel()
         {
             RunTest(true, CreateEmptyJobItems());
@@ -52,7 +54,7 @@ namespace NAppProfiler.Server.Tests.Manager
         }
 
         [Test]
-        //[Ignore]
+        [Ignore]
         public void InsertLogsTest_Parallel()
         {
             RunTest(true, CreateInsertLogItems());

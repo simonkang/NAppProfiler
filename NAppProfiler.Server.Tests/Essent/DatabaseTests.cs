@@ -23,7 +23,17 @@ namespace NAppProfiler.Server.Tests.Essent
         [Test]
         public void GetDatabaseDefaultDirectory()
         {
-            var expected = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "DB", "current"));
+            var expected = string.Empty;
+            var baseD = AppDomain.CurrentDomain.BaseDirectory;
+            if (baseD.IndexOf("bin\\Release", StringComparison.InvariantCultureIgnoreCase) >= 0 ||
+                baseD.IndexOf("bin\\Debug", StringComparison.InvariantCultureIgnoreCase) >= 0)
+            {
+                expected = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "DB", "current"));
+            }
+            else
+            {
+                expected = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DB", "current"));
+            }
             using (var db = new Database(new ConfigManager()))
             {
                 var filePath = db.GetDatabaseDirectory();
@@ -57,7 +67,8 @@ namespace NAppProfiler.Server.Tests.Essent
                 var log = new LogEntity(DateTime.Now, TimeSpan.FromMilliseconds(300), false, new byte[] { 3, 30, 255 });
                 var id = db.InsertLogs(new LogEntity[] { log });
                 Assert.That(id, Is.Not.Null);
-                Assert.That(id, Is.Not.LessThanOrEqualTo(0));
+                Assert.That(id, Has.Count.GreaterThan(0));
+                Assert.That(id.First(), Is.GreaterThanOrEqualTo(0));
             }
         }
 
@@ -82,6 +93,8 @@ namespace NAppProfiler.Server.Tests.Essent
             using (var db = new Database(new ConfigManager()))
             {
                 db.InitializeDatabase();
+                var log = new LogEntity(new DateTime(2011, 11, 9, 0, 0, 0), TimeSpan.FromMilliseconds(300), false, new byte[] { 3, 30, 25 });
+                db.InsertLogs(new LogEntity[] { log });
                 var search = new LogQueryResults() { IncludeData = true };
                 search.DateTime_From = new DateTime(2011, 11, 5, 0, 0, 0, DateTimeKind.Utc);
                 search.DateTime_To = new DateTime(2011, 11, 10, 0, 0, 0, DateTimeKind.Utc);

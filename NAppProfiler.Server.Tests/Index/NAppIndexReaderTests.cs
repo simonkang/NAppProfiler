@@ -13,6 +13,7 @@ namespace NAppProfiler.Server.Tests.Index
     class NAppIndexReaderTests
     {
         [Test]
+        [Ignore]
         public void Search()
         {
             using (var reader = new NAppIndexReader(new ConfigManager()))
@@ -62,12 +63,6 @@ namespace NAppProfiler.Server.Tests.Index
                 var ret = reader.Search(qry);
                 Assert.That(ret, Is.Not.Null);
             }
-        }
-
-        [Test]
-        public void PerfTest()
-        {
-            //System.Threading.Thread.VolatileRead
         }
     }
 }

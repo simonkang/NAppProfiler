@@ -14,6 +14,14 @@
         padding: 9px 0;
       }
     </style>
+    @if (IsSectionDefined("Init"))
+    {
+        <script type="text/javascript">
+            $(document).ready(function() {
+                @RenderSection("Init", required: false)
+            });
+        </script>
+    }
     @*<link href="@Url.Content("~/Content/bootstrap.min.responsive.css")" rel="stylesheet" type="text/css" />*@
 </head>
 

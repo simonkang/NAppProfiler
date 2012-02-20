@@ -55,6 +55,15 @@ namespace NAppProfiler.Server.Tests.Index
                     TimeSpan ts;
                     start = DateTime.UtcNow;
                     var count = idxUpdate.RebuildIndex();
+
+                    //var totalCount = 0L;
+                    //var curCount = 1L;
+                    //while (curCount > 0)
+                    //{
+                    //    curCount = idxUpdate.UpdateIndex();
+                    //    totalCount += curCount;
+                    //}
+
                     stop = DateTime.UtcNow;
                     ts = stop - start;
                     Console.WriteLine("Index Rebuild " + count.ToString("#,##0") + " in " + ts.TotalMilliseconds.ToString("#,##0") + " ms");

@@ -125,10 +125,10 @@ namespace NAppProfiler.Server.Index
             {
                 DateTime_From = query.DateTime_From,
                 DateTime_To = query.DateTime_To,
-                LogIDs = new List<LogQueryResultDetail>(),
             };
             if (qryHeader.Clauses().Count > 0)
             {
+                ret.LogIDs = new List<LogQueryResultDetail>();
                 GetLogIDsFromMain(qryHeader, ret.DateTime_From, ret.DateTime_To, ret.LogIDs);
             }
             return ret;
@@ -138,6 +138,10 @@ namespace NAppProfiler.Server.Index
         {
             var dateFilter = NumericRangeFilter.NewLongRange(FieldKeys.CreatedDT, 8, DateTime.SpecifyKind(from, DateTimeKind.Utc).Ticks, DateTime.SpecifyKind(to, DateTimeKind.Utc).Ticks, true, true);
             var searcher = new IndexSearcher(directory, true);
+            if (searcher.MaxDoc() == 0)
+            {
+                return;
+            }
             var topDocs = searcher.Search(qryHeader, dateFilter, searcher.MaxDoc());
             for (int i = 0; i < topDocs.ScoreDocs.Length; i++)
             {

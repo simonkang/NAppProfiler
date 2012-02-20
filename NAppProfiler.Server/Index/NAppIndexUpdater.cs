@@ -141,9 +141,9 @@ namespace NAppProfiler.Server.Index
             doc.Add(fLogID);
             fLogName.SetValue("");  // TODO: Add Log Name
             doc.Add(fLogName);
-            fSvc.SetValue(log.Service);
+            fSvc.SetValue(string.IsNullOrWhiteSpace(log.Service) ? string.Empty : log.Service);
             doc.Add(fSvc);
-            fMethod.SetValue(log.Method);
+            fMethod.SetValue(string.IsNullOrWhiteSpace(log.Method) ? string.Empty : log.Method);
             doc.Add(fMethod);
             fClientIP.SetValue(ConvertIPToString(log.ClientIP));
             doc.Add(fClientIP);
@@ -156,7 +156,7 @@ namespace NAppProfiler.Server.Index
             fElapsed.SetLongValue(log.Elapsed);
             doc.Add(fElapsed);
 
-            if (log.Details.Count > 0)
+            if (log.Details != null && log.Details.Count > 0)
             {
                 for (int x = 0; x < log.Details.Count; x++)
                 {
@@ -182,6 +182,10 @@ namespace NAppProfiler.Server.Index
         internal static string ConvertIPToString(byte[] data)
         {
             var ret = string.Empty;
+            if (data == null)
+            {
+                return "000" + "000" + "000" + "000";
+            }
             if (data.Length == 4)
             {
                 ret = string.Concat(
