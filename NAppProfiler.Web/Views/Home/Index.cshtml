@@ -4,9 +4,9 @@
 @section Init
 {
 $(function() {
-    $("#fromDate").datepicker();
+    $("#fromDate").datepicker({dateFormat: 'yy-mm-dd'});
     $("#fromTime").timepicker();
-    $("#toDate").datepicker();
+    $("#toDate").datepicker({dateFormat: 'yy-mm-dd'});
     $("#toTime").timepicker();
     $("input[name='dateOptions']").change(function() {
         if ($(this).val() == "realtime") {
@@ -16,8 +16,55 @@ $(function() {
             $("#dateRangeOptions").collapse('show');
         }
     });
+    $("#clearForm").click(function() {
+        $(':input', "#searchForm").each(function() {
+            var type = this.type;
+            var tag = this.tagName.toLowerCase(); // normalize case
+            if (type == 'text') {
+                this.value = "";
+            }
+        });
+        $("#daterange").removeAttr('checked');
+        $("#realtime").attr('checked', 'checked');
+        $("#exceptionOnly").removeAttr('checked');
+        $("#dateRangeOptions").collapse('hide');
+    });
+    $(document).mouseup(function() {
+        if (selection) {
+            selection = false;
+            $('#selection').hide();
+            $('#status').html('(' + x1 + ',' + y2 + '),(' + x2 + ',' + y2 + ')');
+        }
+    });
+    $('#logGraph').mousedown(function(e) {
+        selection = true;
+        x1 = e.pageX - this.offsetLeft;
+        y1 = e.pageY - this.offsetTop;
+    });
+    $('#logGraph').mousemove(function(e) {
+        if (selection) {
+            x2 = e.pageX - this.offsetLeft;
+            y2 = e.pageY - this.offsetTop;
+            x2 = (x2 < 0) ? 0 : (x2 > $(this).width()) ? $(this).width() : x2;
+            y2 = (y2 < 0) ? 0 : (y2 > $(this).height()) ? $(this).height() : y2;
+
+            $('#selection').css({
+                position: 'relative',
+                zIndex: 5000,
+                left: (x1 < x2) ? x1 : x2,
+                top: (y1 < y2) ? y1 : y2,
+                width: (x1 < x2) ? x2 - x1 : x1 - x2,
+                height: (y1 < y2) ? y2 - y1 : y1 - y2
+            });
+            $('#selection').show();
+        }
+    });
 });
 }
+<script type="text/javascript">
+    var x1, x2, y1, y2;
+    var selection = false;
+</script>
 <div id="detailView" class="modal hide fade">
     <div class="modal-header">
         <a class="close" data-dismiss="modal">x</a>
@@ -61,13 +108,14 @@ $(function() {
 <div class="container">
     <div class="row">
         <div class="span4">
-            <form class="well form-inline">
+            <form class="well form-inline" id="searchForm">
                 <label class="checkbox"><input type="checkbox" id="exceptionOnly" />Show Exceptions Only&nbsp;&nbsp;</label>
-                <a class="btn btn-primary pull-right" >Search &raquo;</a>
+                <a class="btn btn-primary pull-right">Search &raquo;</a>
                 <div class="control-group">
                     <div class="controls">
-                        <label class="radio"><input name="dateOptions" value="realtime" type="radio" checked="checked" />Realtime</label>
-                        <label class="radio"><input name="dateOptions" value="daterange" type="radio" />Date Time Range</label>
+                        <label class="radio"><input name="dateOptions" id="realtime" value="realtime" type="radio" checked="checked" />Realtime</label>
+                        <label class="radio"><input name="dateOptions" id="daterange" value="daterange" type="radio" />Date Time Range</label>
+                        <a class="btn pull-right" id="clearForm">Clear &raquo;</a>
                     </div>
                 </div><!--datetime-->
                 <div id="dateRangeOptions" class="collapse">
@@ -121,11 +169,11 @@ $(function() {
             </form>
         </div><!--span4-->
         <div class="span8">
-            <div class="log-graph">
-                <h1>Log Graph!</h1>
-                <p>Show Details</p>
-                <p><a class="btn btn-primary btn-large" data-toggle="modal" href="#detailView">Show Details &raquo;</a></p>
+            <div class="log-graph" id="logGraph">
+                <div id="selection" class="selectiondiv"></div>
             </div>
+            <p id="status">(0,0),(0,0)</p>
         </div><!--span8-->
     </div><!--row-->
-</div><!--container-->
+</div><!--container
+-->
