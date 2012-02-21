@@ -1,6 +1,23 @@
 ﻿@{
     ViewBag.Title = "Home";
 }
+@section Init
+{
+$(function() {
+    $("#fromDate").datepicker();
+    $("#fromTime").timepicker();
+    $("#toDate").datepicker();
+    $("#toTime").timepicker();
+    $("input[name='dateOptions']").change(function() {
+        if ($(this).val() == "realtime") {
+            $("#dateRangeOptions").collapse('hide');
+        }
+        else {
+            $("#dateRangeOptions").collapse('show');
+        }
+    });
+});
+}
 <div id="detailView" class="modal hide fade">
     <div class="modal-header">
         <a class="close" data-dismiss="modal">x</a>
@@ -44,26 +61,64 @@
 <div class="container">
     <div class="row">
         <div class="span4">
-            <div class="well sidebar-nav">
-                <ul class="nav nav-list">
-                    <li class="nav-header">Search</li>
-                    <li class="active"><a href="#">Link</a></li>
-                    <li><a href="#">Link</a></li>
-                    <li><a href="#">Link</a></li>
-                    <li><a href="#">Link</a></li>
-                    <li class="nav-header">Sidebar</li>
-                    <li><a href="#">Link</a></li>
-                    <li><a href="#">Link</a></li>
-                    <li><a href="#">Link</a></li>
-                    <li><a href="#">Link</a></li>
-                    <li><a href="#">Link</a></li>
-                    <li><a href="#">Link</a></li>
-                    <li class="nav-header">Sidebar</li>
-                    <li><a href="#">Link</a></li>
-                    <li><a href="#">Link</a></li>
-                    <li><a href="#">Link</a></li>
-                </ul>
-            </div><!--/.well -->
+            <form class="well form-inline">
+                <label class="checkbox"><input type="checkbox" id="exceptionOnly" />Show Exceptions Only&nbsp;&nbsp;</label>
+                <a class="btn btn-primary pull-right" >Search &raquo;</a>
+                <div class="control-group">
+                    <div class="controls">
+                        <label class="radio"><input name="dateOptions" value="realtime" type="radio" checked="checked" />Realtime</label>
+                        <label class="radio"><input name="dateOptions" value="daterange" type="radio" />Date Time Range</label>
+                    </div>
+                </div><!--datetime-->
+                <div id="dateRangeOptions" class="collapse">
+                    <div class="control-group">
+                        <label class="control-label">From</label>
+                        <div class="controls">
+                            <input id="fromDate" class="span2" type="text" />
+                            <input id="fromTime" class="span1" type="text" />
+                        </div>
+                    </div><!-- From DateTime -->
+                    <div class="control-group">
+                        <label class="control-label">To</label>
+                        <div class="controls">
+                            <input id="toDate" class="span2" type="text" >
+                            <input id="toTime" class="span1" type="text" >
+                        </div>
+                    </div><!-- To DateTime -->
+                    <div class="control-group">
+                        <label>Text Search</label>
+                        <input id="textsearch" type="text" />
+                    </div><!-- Text Search -->
+                    <div class="control-group">
+                        <label>Client IP</label>
+                        <div class="controls">
+                            <input id="cip1" class="span1" type="text" />
+                            <input id="cip2" class="span1" type="text" />
+                            <input id="cip3" class="span1" type="text" />
+                            <input id="cip4" class="span1" type="text" />
+                        </div>
+                    </div><!-- Client IP -->
+                    <div class="control-group">
+                        <label>Server IP</label>
+                        <div class="controls">
+                            <input id="sip1" class="span1" type="text" />
+                            <input id="sip2" class="span1" type="text" />
+                            <input id="sip3" class="span1" type="text" />
+                            <input id="sip4" class="span1" type="text" />
+                        </div>
+                    </div><!-- Server IP -->
+                    <div class="control-group">
+                        <label>Total Elapsed (ms)</label>
+                        <input id="totalFrom" class="span1 pull-right" type="text" placeholder="from" />
+                        <input id="totalTo" class ="span1 pull-right" type="text" placeholder="to" />
+                    </div><!-- Total Elapsed -->
+                    <div class="control-group">
+                        <label>Detail Elapsed (ms)</label>
+                        <input id="detailFrom" class="span1" type="text" placeholder="from" />
+                        <input id="detailTo" class="span1" type="text" placeholder="to" />
+                    </div><!-- Detail Elapsed -->
+                </div><!--collapsable dateRangeOptions-->
+            </form>
         </div><!--span4-->
         <div class="span8">
             <div class="log-graph">
