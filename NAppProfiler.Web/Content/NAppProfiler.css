@@ -23,7 +23,9 @@
     min-height: 30px;
     line-height: 20px;
 }
-.selectiondiv {
+.selectiondiv 
+{
+    position: relative;
     border:2px solid white;
     background:#1B94E0;
     opacity:0.4;
@@ -31,4 +33,7 @@
     margin:0px;
     padding:0px;
     display:none;
+}
+.log-canvas {
+    padding: 30px;
 }

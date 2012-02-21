@@ -59,6 +59,16 @@ $(function() {
             $('#selection').show();
         }
     });
+    $('#startSearch').click(function() {
+        alert('search');
+    });
+    Modernizr.load({
+        test: Modernizr.canvas,
+        nope: ['@Url.Content("~/Scripts/excanvas.js")']
+    });
+    if (!Modernizr.canvas) {
+        G_vmlCanvasManager.initElement($('#logCanvas'));
+    }
 });
 }
 <script type="text/javascript">
@@ -110,7 +120,7 @@ $(function() {
         <div class="span4">
             <form class="well form-inline" id="searchForm">
                 <label class="checkbox"><input type="checkbox" id="exceptionOnly" />Show Exceptions Only&nbsp;&nbsp;</label>
-                <a class="btn btn-primary pull-right">Search &raquo;</a>
+                <a class="btn btn-primary pull-right" id="startSearch">Search &raquo;</a>
                 <div class="control-group">
                     <div class="controls">
                         <label class="radio"><input name="dateOptions" id="realtime" value="realtime" type="radio" checked="checked" />Realtime</label>
@@ -171,6 +181,7 @@ $(function() {
         <div class="span8">
             <div class="log-graph" id="logGraph">
                 <div id="selection" class="selectiondiv"></div>
+                <canvas id="logCanvas" class="log-canvas" width="560px" height="220px"></canvas>
             </div>
             <p id="status">(0,0),(0,0)</p>
         </div><!--span8-->
