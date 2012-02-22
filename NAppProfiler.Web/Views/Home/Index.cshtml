@@ -72,6 +72,7 @@ $(function() {
 <script type="text/javascript">
     var x1, x2, y1, y2;
     var selection = false;
+    var sdate = new Date(), edate = new Date();
 
     function initgraph() {
         var canvas = $('#logCanvas')[0];
@@ -86,23 +87,27 @@ $(function() {
         ctx.beginPath(); ctx.moveTo(20.5, 20.5); ctx.lineTo(20.5, canHeight - 20.5); ctx.lineTo(canWidth - 20.5, canHeight - 20.5); ctx.lineTo(canWidth - 20.5, 20.5); ctx.lineTo(20.5, 20.5); ctx.stroke();
         horaxis(ctx, 20, 20, canWidth - 40, canHeight - 40, 6);
         vertaxis(ctx, 20, 20, canWidth - 40, canHeight - 40, 10);
+        var baseDate = new Date();
+        sdate.setTime(baseDate.getTime() - (18 * 60000));
+        edate.setTime(baseDate.getTime() + (2 * 60000));
+        vertheaders(ctx, 20, 20, canWidth - 40, canHeight - 40, 10);
     }
 
     function horaxis(ctx, x, y, w, h, n) {
         var space = h / n;
-        var i;
+        var i, curY, txt;
         ctx.strokeStyle = "rgba(190, 190, 190, 0.8)";
         ctx.beginPath();
         for (i = 1; i <= n; i++) {
-            var curY = y + (space * i) + 0.5;
+            curY = y + (space * i) + 0.5;
             ctx.moveTo(x + 0.5, curY);
             ctx.lineTo(x + 0.5 + w, curY);
         }
         ctx.stroke();
         ctx.strokeStyle = "rgb(119,136,153)";
         for (i = 0; i < n; i++) {
-            var curY = y + (space * i) + 0.5;
-            var txt = 30 - ((30 / n) * i);
+            curY = y + (space * i) + 0.5;
+            txt = 30 - ((30 / n) * i);
             ctx.strokeText(txt, x - 14, curY + 3.5);
         }
     }
@@ -117,7 +122,25 @@ $(function() {
             ctx.lineTo(x + (space * i) + 0.5, y + h + 0.5);
         }
         ctx.stroke();
+    }
+
+    function vertheaders(ctx, x, y, w, h, n) {
+        var space = w / n;
+        var tinterval = (edate.getTime() - sdate.getTime()) / n;
+        var i = 1;
+        var txt = new Date();
         ctx.strokeStyle = "rgb(119,136,153)";
+        for (i = 1; i <= n; i++) {
+            txt.setTime(sdate.getTime() + (tinterval * i));
+            ctx.strokeText(addLeadingZero(txt.getHours()) + ":" + addLeadingZero(txt.getMinutes()) + ":" + addLeadingZero(txt.getSeconds()), x + (space * i) - 25, y + h + 10);
+        }
+    }
+
+    function addLeadingZero(n) {
+        if (n.length == 1) {
+            return "0" + n;
+        }
+        return n;
     }
 </script>
 <div id="detailView" class="modal hide fade">
