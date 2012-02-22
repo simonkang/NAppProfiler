@@ -35,5 +35,6 @@
     display:none;
 }
 .log-canvas {
+    position: absolute;
     padding: 30px;
 }

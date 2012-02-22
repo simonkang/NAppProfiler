@@ -33,13 +33,14 @@ $(function() {
         if (selection) {
             selection = false;
             $('#selection').hide();
-            $('#status').html('(' + x1 + ',' + y2 + '),(' + x2 + ',' + y2 + ')');
+            $('#status').html('(' + x1 + ',' + y1 + '),(' + x2 + ',' + y2 + ')');
         }
     });
     $('#logGraph').mousedown(function(e) {
         selection = true;
         x1 = e.pageX - this.offsetLeft;
         y1 = e.pageY - this.offsetTop;
+        $('#selection').show();
     });
     $('#logGraph').mousemove(function(e) {
         if (selection) {
@@ -49,14 +50,13 @@ $(function() {
             y2 = (y2 < 0) ? 0 : (y2 > $(this).height()) ? $(this).height() : y2;
 
             $('#selection').css({
-                position: 'relative',
-                zIndex: 5000,
-                left: (x1 < x2) ? x1 : x2,
-                top: (y1 < y2) ? y1 : y2,
+                position: 'absolute',
+                zindex: 5000,
+                left: (x1 < x2) ? x1 + this.offsetLeft : x2 + this.offsetLeft,
+                top: (y1 < y2) ? y1 + this.offsetTop : y2 + this.offsetTop,
                 width: (x1 < x2) ? x2 - x1 : x1 - x2,
                 height: (y1 < y2) ? y2 - y1 : y1 - y2
             });
-            $('#selection').show();
         }
     });
     $('#startSearch').click(function() {
@@ -64,16 +64,61 @@ $(function() {
     });
     Modernizr.load({
         test: Modernizr.canvas,
-        nope: ['@Url.Content("~/Scripts/excanvas.js")']
+        nope: ['@Url.Content("~/Scripts/excanvas.js")'],
+        complete: initgraph
     });
-    if (!Modernizr.canvas) {
-        G_vmlCanvasManager.initElement($('#logCanvas'));
-    }
 });
 }
 <script type="text/javascript">
     var x1, x2, y1, y2;
     var selection = false;
+
+    function initgraph() {
+        var canvas = $('#logCanvas')[0];
+        if (!Modernizr.canvas) {
+            G_vmlCanvasManager.initElement(canvas);
+        }
+        var canWidth = canvas.width;
+        var canHeight = canvas.height;
+        var ctx = canvas.getContext('2d');
+        ctx.strokeRect(0.5, 0.5, canWidth - 0.5, canHeight - 0.5);  // Temporary border around full canvas
+        // Border for Graph
+        ctx.beginPath(); ctx.moveTo(20.5, 20.5); ctx.lineTo(20.5, canHeight - 20.5); ctx.lineTo(canWidth - 20.5, canHeight - 20.5); ctx.lineTo(canWidth - 20.5, 20.5); ctx.lineTo(20.5, 20.5); ctx.stroke();
+        horaxis(ctx, 20, 20, canWidth - 40, canHeight - 40, 6);
+        vertaxis(ctx, 20, 20, canWidth - 40, canHeight - 40, 10);
+    }
+
+    function horaxis(ctx, x, y, w, h, n) {
+        var space = h / n;
+        var i;
+        ctx.strokeStyle = "rgba(190, 190, 190, 0.8)";
+        ctx.beginPath();
+        for (i = 1; i <= n; i++) {
+            var curY = y + (space * i) + 0.5;
+            ctx.moveTo(x + 0.5, curY);
+            ctx.lineTo(x + 0.5 + w, curY);
+        }
+        ctx.stroke();
+        ctx.strokeStyle = "rgb(119,136,153)";
+        for (i = 0; i < n; i++) {
+            var curY = y + (space * i) + 0.5;
+            var txt = 30 - ((30 / n) * i);
+            ctx.strokeText(txt, x - 14, curY + 3.5);
+        }
+    }
+
+    function vertaxis(ctx, x, y, w, h, n) {
+        var space = w / n;
+        var i = 1;
+        ctx.strokeStyle = "rgba(190, 190, 190, 0.8)";
+        ctx.beginPath();
+        for (i = 1; i <= n; i++) {
+            ctx.moveTo(x + (space * i) + 0.5, y + 0.5);
+            ctx.lineTo(x + (space * i) + 0.5, y + h + 0.5);
+        }
+        ctx.stroke();
+        ctx.strokeStyle = "rgb(119,136,153)";
+    }
 </script>
 <div id="detailView" class="modal hide fade">
     <div class="modal-header">
@@ -119,13 +164,15 @@ $(function() {
     <div class="row">
         <div class="span4">
             <form class="well form-inline" id="searchForm">
+                <div class="control-group"><div class="controls">
+                    <a class="btn btn-primary" id="startSearch">Search &raquo;</a>
+                    <a class="btn pull-right" id="clearForm">Clear &raquo;</a>
+                </div></div>
                 <label class="checkbox"><input type="checkbox" id="exceptionOnly" />Show Exceptions Only&nbsp;&nbsp;</label>
-                <a class="btn btn-primary pull-right" id="startSearch">Search &raquo;</a>
                 <div class="control-group">
                     <div class="controls">
-                        <label class="radio"><input name="dateOptions" id="realtime" value="realtime" type="radio" checked="checked" />Realtime</label>
+                        <label class="radio"><input name="dateOptions" id="realtime" value="realtime" type="radio" checked="checked" />Realtime</label>&nbsp;&nbsp;
                         <label class="radio"><input name="dateOptions" id="daterange" value="daterange" type="radio" />Date Time Range</label>
-                        <a class="btn pull-right" id="clearForm">Clear &raquo;</a>
                     </div>
                 </div><!--datetime-->
                 <div id="dateRangeOptions" class="collapse">
@@ -179,9 +226,9 @@ $(function() {
             </form>
         </div><!--span4-->
         <div class="span8">
-            <div class="log-graph" id="logGraph">
+            <div class="log-graph" id="logGraph" onselectstart="return false">
                 <div id="selection" class="selectiondiv"></div>
-                <canvas id="logCanvas" class="log-canvas" width="560px" height="220px"></canvas>
+                <canvas id="logCanvas" class="log-canvas" width="560" height="280">No support for HTML5 Canvas</canvas>
             </div>
             <p id="status">(0,0),(0,0)</p>
         </div><!--span8-->

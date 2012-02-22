@@ -102,7 +102,23 @@
         <a class="btn btn-primary" data-dismiss="modal">Close</a>
     </div>
 </div><!--/modal-->
-
+<div id="images">
+</div>
+@section Init
+{
+    $.getJSON("http://api.flickr.com/services/feeds/photos_public.gne?jsoncallback=?",
+  {
+      tags: "cat",
+      tagmode: "any",
+      format: "json"
+  },
+  function (data) {
+      $.each(data.items, function (i, item) {
+          $("<img/>").attr("src", item.media.m).appendTo("#images");
+          if (i == 3) return false;
+      });
+  });
+}
 <div class="log-graph">
     <h1>Log Graph!</h1>
     <p>Show Details</p>
