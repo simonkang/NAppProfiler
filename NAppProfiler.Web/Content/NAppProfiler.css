@@ -4,7 +4,7 @@
   -webkit-border-radius: 6px;
   -moz-border-radius: 6px;
   border-radius: 6px;
-  height: 340px;
+  height: 380px;
 }
 .log-graph h1 {
   margin-bottom: 0;
@@ -25,7 +25,7 @@
 }
 .selectiondiv 
 {
-    position: relative;
+    position: absolute;
     border:2px solid white;
     background:#1B94E0;
     opacity:0.4;
@@ -36,5 +36,5 @@
 }
 .log-canvas {
     position: absolute;
-    padding: 30px;
+    padding: 10px;
 }

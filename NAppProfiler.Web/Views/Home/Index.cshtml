@@ -4,6 +4,8 @@
 @section Init
 {
 $(function() {
+    selDiv = $("#selection"); logGraphWidth = $('#logGraph').width(); logGraphHeight = $('#logGraph').height();
+    logCanvasPadLeft = parseInt($('#logCanvas').css('padding-left')); logCanvasPadTop = parseInt($('#logCanvas').css('padding-top'));
     $("#fromDate").datepicker({dateFormat: 'yy-mm-dd'});
     $("#fromTime").timepicker();
     $("#toDate").datepicker({dateFormat: 'yy-mm-dd'});
@@ -30,28 +32,39 @@ $(function() {
         $("#dateRangeOptions").collapse('hide');
     });
     $(document).mouseup(function() {
+        var ctx;
         if (selection) {
             selection = false;
-            $('#selection').hide();
+            selDiv.hide();
+            ctx = drawPoint(ctx, x1, y1, x1, y1);
+            ctx = drawPoint(ctx, x2, y2, x2, y2);
             $('#status').html('(' + x1 + ',' + y1 + '),(' + x2 + ',' + y2 + ')');
+            selDiv.css({
+                position: 'absolute',
+                zindex: 5000,
+                left: 0,
+                top: 0,
+                width: 0,
+                height: 0
+            });
         }
     });
     $('#logGraph').mousedown(function(e) {
         selection = true;
-        x1 = e.pageX - this.offsetLeft;
-        y1 = e.pageY - this.offsetTop;
-        $('#selection').show();
+        x1 = x2 = e.pageX - this.offsetLeft;
+        y1 = y2 = e.pageY - this.offsetTop;
+        selDiv.show();
     });
     $('#logGraph').mousemove(function(e) {
         if (selection) {
             x2 = e.pageX - this.offsetLeft;
             y2 = e.pageY - this.offsetTop;
-            x2 = (x2 < 0) ? 0 : (x2 > $(this).width()) ? $(this).width() : x2;
-            y2 = (y2 < 0) ? 0 : (y2 > $(this).height()) ? $(this).height() : y2;
+            x2 = (x2 < 0) ? 0 : (x2 > logGraphWidth) ? logGraphWidth : x2;
+            y2 = (y2 < 0) ? 0 : (y2 > logGraphHeight) ? logGraphHeight : y2;
 
-            $('#selection').css({
-                position: 'absolute',
-                zindex: 5000,
+            selDiv.css({
+                //position: 'absolute',
+                //zindex: 5000,
                 left: (x1 < x2) ? x1 + this.offsetLeft : x2 + this.offsetLeft,
                 top: (y1 < y2) ? y1 + this.offsetTop : y2 + this.offsetTop,
                 width: (x1 < x2) ? x2 - x1 : x1 - x2,
@@ -60,6 +73,7 @@ $(function() {
         }
     });
     $('#startSearch').click(function() {
+        drawPoint(null, 10, 10, 610, 370);
         alert('search');
     });
     Modernizr.load({
@@ -72,6 +86,7 @@ $(function() {
 <script type="text/javascript">
     var x1, x2, y1, y2;
     var selection = false;
+    var selDiv, logGraphWidth, logGraphHeight, logCanvasPadLeft, logCanvasPadTop;
     var sdate = new Date(), edate = new Date();
 
     function initgraph() {
@@ -82,15 +97,17 @@ $(function() {
         var canWidth = canvas.width;
         var canHeight = canvas.height;
         var ctx = canvas.getContext('2d');
-        ctx.strokeRect(0.5, 0.5, canWidth - 0.5, canHeight - 0.5);  // Temporary border around full canvas
-        // Border for Graph
-        ctx.beginPath(); ctx.moveTo(20.5, 20.5); ctx.lineTo(20.5, canHeight - 20.5); ctx.lineTo(canWidth - 20.5, canHeight - 20.5); ctx.lineTo(canWidth - 20.5, 20.5); ctx.lineTo(20.5, 20.5); ctx.stroke();
+        //ctx.strokeRect(0.5, 0.5, canWidth - 0.5, canHeight - 0.5);  // Temporary border around full canvas
+
         horaxis(ctx, 20, 20, canWidth - 40, canHeight - 40, 6);
         vertaxis(ctx, 20, 20, canWidth - 40, canHeight - 40, 10);
         var baseDate = new Date();
         sdate.setTime(baseDate.getTime() - (18 * 60000));
         edate.setTime(baseDate.getTime() + (2 * 60000));
         vertheaders(ctx, 20, 20, canWidth - 40, canHeight - 40, 10);
+        // Border for Graph
+        ctx.strokeStyle = "rgb(0,0,0)";
+        ctx.beginPath(); ctx.moveTo(20.5, 20.5); ctx.lineTo(20.5, canHeight - 20.5); ctx.lineTo(canWidth - 20.5, canHeight - 20.5); ctx.lineTo(canWidth - 20.5, 20.5); ctx.lineTo(20.5, 20.5); ctx.stroke();
     }
 
     function horaxis(ctx, x, y, w, h, n) {
@@ -108,7 +125,7 @@ $(function() {
         for (i = 0; i < n; i++) {
             curY = y + (space * i) + 0.5;
             txt = 30 - ((30 / n) * i);
-            ctx.strokeText(txt, x - 14, curY + 3.5);
+            ctx.fillText(txt, x - 14, curY + 3.5);
         }
     }
 
@@ -132,15 +149,38 @@ $(function() {
         ctx.strokeStyle = "rgb(119,136,153)";
         for (i = 1; i <= n; i++) {
             txt.setTime(sdate.getTime() + (tinterval * i));
-            ctx.strokeText(addLeadingZero(txt.getHours()) + ":" + addLeadingZero(txt.getMinutes()) + ":" + addLeadingZero(txt.getSeconds()), x + (space * i) - 25, y + h + 10);
+            ctx.fillText(addLeadingZero(txt.getHours()) + ":" + addLeadingZero(txt.getMinutes()) + ":" + addLeadingZero(txt.getSeconds()), x + (space * i) - 25, y + h + 10);
         }
     }
 
     function addLeadingZero(n) {
-        if (n.length == 1) {
-            return "0" + n;
+        var ret = n.toString();
+        if (ret.length == 1) {
+            return "0" + ret;
         }
-        return n;
+        return ret;
+    }
+
+    function drawPoint(ctx, px1, py1, px2, py2, r, g, b) {
+        if (ctx == null) {
+            var canvas = $('#logCanvas')[0];
+            ctx = canvas.getContext('2d');
+        }
+        if (r == null || g == null || b == null) {
+            ctx.strokeStyle = "rgb(0,0,0)";
+        }
+        else {
+            ctx.strokeStyle = "rgb(" + r + "," + g + "," + b + ")";
+        }
+        ctx.beginPath();
+        if (px1 == px2 && py1 == py2) {
+            ctx.arc(px1 - logCanvasPadLeft, py2 - logCanvasPadTop, 1, 0, 2 * Math.PI, true);
+        }
+        else {
+            ctx.fillRect(px1 - logCanvasPadLeft, py1 - logCanvasPadTop, px2 - logCanvasPadLeft, py2 - logCanvasPadTop);
+        }
+        ctx.fill();
+        return ctx;
     }
 </script>
 <div id="detailView" class="modal hide fade">
@@ -251,7 +291,7 @@ $(function() {
         <div class="span8">
             <div class="log-graph" id="logGraph" onselectstart="return false">
                 <div id="selection" class="selectiondiv"></div>
-                <canvas id="logCanvas" class="log-canvas" width="560" height="280">No support for HTML5 Canvas</canvas>
+                <canvas id="logCanvas" class="log-canvas" width="600" height="360">No support for HTML5 Canvas</canvas>
             </div>
             <p id="status">(0,0),(0,0)</p>
         </div><!--span8-->
