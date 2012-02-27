@@ -26,7 +26,6 @@
 .selectiondiv 
 {
     position: absolute;
-    border:2px solid white;
     background:#1B94E0;
     opacity:0.4;
     filter:alpha(opacity=40);

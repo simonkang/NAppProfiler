@@ -1,187 +1,284 @@
-﻿@{
+@{
     ViewBag.Title = "Home";
 }
 @section Init
 {
-$(function() {
-    selDiv = $("#selection"); logGraphWidth = $('#logGraph').width(); logGraphHeight = $('#logGraph').height();
-    logCanvasPadLeft = parseInt($('#logCanvas').css('padding-left')); logCanvasPadTop = parseInt($('#logCanvas').css('padding-top'));
-    $("#fromDate").datepicker({dateFormat: 'yy-mm-dd'});
-    $("#fromTime").timepicker();
-    $("#toDate").datepicker({dateFormat: 'yy-mm-dd'});
-    $("#toTime").timepicker();
-    $("input[name='dateOptions']").change(function() {
-        if ($(this).val() == "realtime") {
-            $("#dateRangeOptions").collapse('hide');
-        }
-        else {
-            $("#dateRangeOptions").collapse('show');
-        }
-    });
-    $("#clearForm").click(function() {
-        $(':input', "#searchForm").each(function() {
-            var type = this.type;
-            var tag = this.tagName.toLowerCase(); // normalize case
-            if (type == 'text') {
-                this.value = "";
-            }
-        });
-        $("#daterange").removeAttr('checked');
-        $("#realtime").attr('checked', 'checked');
-        $("#exceptionOnly").removeAttr('checked');
+selDiv = $("#selection"); logGraphWidth = $('#logGraph').width(); logGraphHeight = $('#logGraph').height();
+logCanvasPadLeft = parseInt($('#logCanvas').css('padding-left')); logCanvasPadTop = parseInt($('#logCanvas').css('padding-top'));
+$("#fromDate").datepicker({dateFormat: 'yy-mm-dd'});
+$("#fromTime").timepicker();
+$("#toDate").datepicker({dateFormat: 'yy-mm-dd'});
+$("#toTime").timepicker();
+$("input[name='dateOptions']").change(function() {
+    if ($(this).val() == "realtime") {
         $("#dateRangeOptions").collapse('hide');
-    });
-    $(document).mouseup(function() {
-        var ctx;
-        if (selection) {
-            selection = false;
-            selDiv.hide();
-            ctx = drawPoint(ctx, x1, y1, x1, y1);
-            ctx = drawPoint(ctx, x2, y2, x2, y2);
-            $('#status').html('(' + x1 + ',' + y1 + '),(' + x2 + ',' + y2 + ')');
-            selDiv.css({
-                position: 'absolute',
-                zindex: 5000,
-                left: 0,
-                top: 0,
-                width: 0,
-                height: 0
-            });
-        }
-    });
-    $('#logGraph').mousedown(function(e) {
-        selection = true;
-        x1 = x2 = e.pageX - this.offsetLeft;
-        y1 = y2 = e.pageY - this.offsetTop;
-        selDiv.show();
-    });
-    $('#logGraph').mousemove(function(e) {
-        if (selection) {
-            x2 = e.pageX - this.offsetLeft;
-            y2 = e.pageY - this.offsetTop;
-            x2 = (x2 < 0) ? 0 : (x2 > logGraphWidth) ? logGraphWidth : x2;
-            y2 = (y2 < 0) ? 0 : (y2 > logGraphHeight) ? logGraphHeight : y2;
+    }
+    else {
+        $("#dateRangeOptions").collapse('show');
+    }
+});
+$("#clearForm").click(clearForm);
+$(document).mouseup(function() {
+    var ctx;
+    if (selection) {
+        $("body").off("mousemove", "#logGraph", selectionChanged);
+        selection = false;
+        selDiv.hide();
+        ctx = drawPoint(ctx, x1, y1, x2, y2);
+        $('#status').html('(' + x1 + ',' + y1 + '),(' + x2 + ',' + y2 + ')');
+        selDiv.css({
+            position: 'absolute',
+            zindex: 5000,
+            left: 0,
+            top: 0,
+            width: 0,
+            height: 0
+        });
+    }
+});
+$('#logGraph').mousedown(function(e) {
+    $("body").on("mousemove", "#logGraph", selectionChanged);
+    selection = true;
+    x1 = x2 = e.pageX - this.offsetLeft;
+    y1 = y2 = e.pageY - this.offsetTop;
+    selDiv.show();
+});
+@*
+$('#logGraph').mousemove(function(e) {
+    if (selection) {
+        x2 = e.pageX - this.offsetLeft;
+        y2 = e.pageY - this.offsetTop;
+        x2 = (x2 < 0) ? 0 : (x2 > logGraphWidth) ? logGraphWidth : x2;
+        y2 = (y2 < 0) ? 0 : (y2 > logGraphHeight) ? logGraphHeight : y2;
 
-            selDiv.css({
-                //position: 'absolute',
-                //zindex: 5000,
-                left: (x1 < x2) ? x1 + this.offsetLeft : x2 + this.offsetLeft,
-                top: (y1 < y2) ? y1 + this.offsetTop : y2 + this.offsetTop,
-                width: (x1 < x2) ? x2 - x1 : x1 - x2,
-                height: (y1 < y2) ? y2 - y1 : y1 - y2
-            });
-        }
-    });
-    $('#startSearch').click(function() {
-        drawPoint(null, 10, 10, 610, 370);
-        alert('search');
-    });
-    Modernizr.load({
-        test: Modernizr.canvas,
-        nope: ['@Url.Content("~/Scripts/excanvas.js")'],
-        complete: initgraph
-    });
+        selDiv.css({
+            //position: 'absolute',
+            //zindex: 5000,
+            left: (x1 < x2) ? x1 + this.offsetLeft : x2 + this.offsetLeft,
+            top: (y1 < y2) ? y1 + this.offsetTop : y2 + this.offsetTop,
+            width: (x1 < x2) ? x2 - x1 : x1 - x2,
+            height: (y1 < y2) ? y2 - y1 : y1 - y2
+        });
+    }
+});
+*@
+$('#startSearch').click(function() {
+    doSearch();
+});
+Modernizr.load({
+    test: Modernizr.canvas,
+    nope: ['@Url.Content("~/Scripts/excanvas.js")'],
+    complete: clearForm
 });
 }
 <script type="text/javascript">
-    var x1, x2, y1, y2;
-    var selection = false;
-    var selDiv, logGraphWidth, logGraphHeight, logCanvasPadLeft, logCanvasPadTop;
-    var sdate = new Date(), edate = new Date();
+var x1, x2, y1, y2;
+var selection = false;
+var selDiv, logGraphWidth, logGraphHeight, logCanvasPadLeft, logCanvasPadTop, offSetX, offSetY;
+var sdate = new Date(), edate = new Date();
 
-    function initgraph() {
+function clearForm() {
+    $(':input', "#searchForm").each(function() {
+        var type = this.type;
+        var tag = this.tagName.toLowerCase(); // normalize case
+        if (type == 'text') {
+            this.value = "";
+        }
+    });
+    $("#daterange").removeAttr('checked');
+    $("#realtime").attr('checked', 'checked');
+    $("#exceptionOnly").removeAttr('checked');
+    $("#dateRangeOptions").collapse('hide');
+    $("#errors").html('');
+    initgraph();
+}
+function initgraph() {
+    var canvas = $('#logCanvas')[0];
+    if (!Modernizr.canvas) {
+        G_vmlCanvasManager.initElement(canvas);
+    }
+    var canWidth = canvas.width;
+    canvas.width = canWidth;
+    var canHeight = canvas.height;
+    var ctx = canvas.getContext('2d');
+    //ctx.strokeRect(0.5, 0.5, canWidth - 0.5, canHeight - 0.5);  // Temporary border around full canvas
+
+    offSetX = 20; offSetY = 20;
+    horaxis(ctx, offSetX, offSetY, canWidth - (offSetX * 2), canHeight - (offSetY * 2), 6);
+    vertaxis(ctx, offSetX, offSetY, canWidth - (offSetX * 2), canHeight - (offSetY * 2), 10);
+    var baseDate = new Date();
+    sdate.setTime(baseDate.getTime() - (18 * 60000));
+    edate.setTime(baseDate.getTime() + (2 * 60000));
+    vertheaders(ctx, offSetX, offSetY, canWidth - (offSetX * 2), canHeight - (offSetY * 2), 10);
+    // Border for Graph
+    ctx.strokeStyle = "rgb(0,0,0)";
+    ctx.beginPath(); ctx.moveTo(offSetX + 0.5, offSetY + 0.5); ctx.lineTo(offSetX + 0.5, canHeight - offSetY - 0.5); ctx.lineTo(canWidth - offSetX + 0.5, canHeight - offSetY - 0.5); ctx.lineTo(canWidth - offSetX + 0.5, offSetY + 0.5); ctx.lineTo(offSetX + 0.5, offSetY + 0.5); ctx.stroke();
+}
+
+function horaxis(ctx, x, y, w, h, n) {
+    var space = h / n;
+    var i, curY, txt;
+    ctx.strokeStyle = "rgba(190, 190, 190, 0.8)";
+    ctx.beginPath();
+    for (i = 1; i <= n; i++) {
+        curY = y + (space * i) + 0.5;
+        ctx.moveTo(x + 0.5, curY);
+        ctx.lineTo(x + 0.5 + w, curY);
+    }
+    ctx.stroke();
+    ctx.strokeStyle = "rgb(119,136,153)";
+    for (i = 0; i < n; i++) {
+        curY = y + (space * i) + 0.5;
+        txt = 30 - ((30 / n) * i);
+        ctx.fillText(txt, x - 14, curY + 3.5);
+    }
+}
+
+function vertaxis(ctx, x, y, w, h, n) {
+    var space = w / n;
+    var i = 1;
+    ctx.strokeStyle = "rgba(190, 190, 190, 0.8)";
+    ctx.beginPath();
+    for (i = 1; i <= n; i++) {
+        ctx.moveTo(x + (space * i) + 0.5, y + 0.5);
+        ctx.lineTo(x + (space * i) + 0.5, y + h + 0.5);
+    }
+    ctx.stroke();
+}
+
+function vertheaders(ctx, x, y, w, h, n) {
+    var space = w / n;
+    var tinterval = (edate.getTime() - sdate.getTime()) / n;
+    var i = 1;
+    var txt = new Date();
+    ctx.strokeStyle = "rgb(119,136,153)";
+    for (i = 1; i <= n; i++) {
+        txt.setTime(sdate.getTime() + (tinterval * i));
+        ctx.fillText(addLeadingZero(txt.getHours()) + ":" + addLeadingZero(txt.getMinutes()) + ":" + addLeadingZero(txt.getSeconds()), x + (space * i) - 25, y + h + 10);
+    }
+}
+
+function addLeadingZero(n) {
+    var ret = n.toString();
+    if (ret.length == 1) {
+        return "0" + ret;
+    }
+    return ret;
+}
+
+function drawPoint(ctx, px1, py1, px2, py2, r, g, b) {
+    var calcHeight = 0, calcWidth = 0, calcX = 0, calcY = 0;
+    if (ctx == null) {
         var canvas = $('#logCanvas')[0];
-        if (!Modernizr.canvas) {
-            G_vmlCanvasManager.initElement(canvas);
-        }
-        var canWidth = canvas.width;
-        var canHeight = canvas.height;
-        var ctx = canvas.getContext('2d');
-        //ctx.strokeRect(0.5, 0.5, canWidth - 0.5, canHeight - 0.5);  // Temporary border around full canvas
-
-        horaxis(ctx, 20, 20, canWidth - 40, canHeight - 40, 6);
-        vertaxis(ctx, 20, 20, canWidth - 40, canHeight - 40, 10);
-        var baseDate = new Date();
-        sdate.setTime(baseDate.getTime() - (18 * 60000));
-        edate.setTime(baseDate.getTime() + (2 * 60000));
-        vertheaders(ctx, 20, 20, canWidth - 40, canHeight - 40, 10);
-        // Border for Graph
+        ctx = canvas.getContext('2d');
+    }
+    if (r == null || g == null || b == null) {
         ctx.strokeStyle = "rgb(0,0,0)";
-        ctx.beginPath(); ctx.moveTo(20.5, 20.5); ctx.lineTo(20.5, canHeight - 20.5); ctx.lineTo(canWidth - 20.5, canHeight - 20.5); ctx.lineTo(canWidth - 20.5, 20.5); ctx.lineTo(20.5, 20.5); ctx.stroke();
     }
-
-    function horaxis(ctx, x, y, w, h, n) {
-        var space = h / n;
-        var i, curY, txt;
-        ctx.strokeStyle = "rgba(190, 190, 190, 0.8)";
-        ctx.beginPath();
-        for (i = 1; i <= n; i++) {
-            curY = y + (space * i) + 0.5;
-            ctx.moveTo(x + 0.5, curY);
-            ctx.lineTo(x + 0.5 + w, curY);
-        }
-        ctx.stroke();
-        ctx.strokeStyle = "rgb(119,136,153)";
-        for (i = 0; i < n; i++) {
-            curY = y + (space * i) + 0.5;
-            txt = 30 - ((30 / n) * i);
-            ctx.fillText(txt, x - 14, curY + 3.5);
-        }
+    else {
+        ctx.strokeStyle = "rgb(" + r + "," + g + "," + b + ")";
     }
-
-    function vertaxis(ctx, x, y, w, h, n) {
-        var space = w / n;
-        var i = 1;
-        ctx.strokeStyle = "rgba(190, 190, 190, 0.8)";
-        ctx.beginPath();
-        for (i = 1; i <= n; i++) {
-            ctx.moveTo(x + (space * i) + 0.5, y + 0.5);
-            ctx.lineTo(x + (space * i) + 0.5, y + h + 0.5);
-        }
-        ctx.stroke();
-    }
-
-    function vertheaders(ctx, x, y, w, h, n) {
-        var space = w / n;
-        var tinterval = (edate.getTime() - sdate.getTime()) / n;
-        var i = 1;
-        var txt = new Date();
-        ctx.strokeStyle = "rgb(119,136,153)";
-        for (i = 1; i <= n; i++) {
-            txt.setTime(sdate.getTime() + (tinterval * i));
-            ctx.fillText(addLeadingZero(txt.getHours()) + ":" + addLeadingZero(txt.getMinutes()) + ":" + addLeadingZero(txt.getSeconds()), x + (space * i) - 25, y + h + 10);
-        }
-    }
-
-    function addLeadingZero(n) {
-        var ret = n.toString();
-        if (ret.length == 1) {
-            return "0" + ret;
-        }
-        return ret;
-    }
-
-    function drawPoint(ctx, px1, py1, px2, py2, r, g, b) {
-        if (ctx == null) {
-            var canvas = $('#logCanvas')[0];
-            ctx = canvas.getContext('2d');
-        }
-        if (r == null || g == null || b == null) {
-            ctx.strokeStyle = "rgb(0,0,0)";
-        }
-        else {
-            ctx.strokeStyle = "rgb(" + r + "," + g + "," + b + ")";
-        }
-        ctx.beginPath();
-        if (px1 == px2 && py1 == py2) {
-            ctx.arc(px1 - logCanvasPadLeft, py2 - logCanvasPadTop, 1, 0, 2 * Math.PI, true);
-        }
-        else {
-            ctx.fillRect(px1 - logCanvasPadLeft, py1 - logCanvasPadTop, px2 - logCanvasPadLeft, py2 - logCanvasPadTop);
-        }
+    ctx.beginPath();
+    if (px1 == px2 && py1 == py2) {
+        ctx.arc(px1 - logCanvasPadLeft + 0.5, py2 - logCanvasPadTop + 0.5, 1, 0, 2 * Math.PI, true);
         ctx.fill();
-        return ctx;
     }
+    else {
+        if (x2 > x1) {
+            calcWidth = x2 - x1;
+            calcX = x1;
+        } else {
+            calcWidth = x1 - x2;
+            calcX = x2;
+        }
+        if (y2 > y1) {
+            calcHeight = y2 - y1;
+            calcY = y1;
+        } else {
+            calcHeight = y1 - y2;
+            calcY = y2;
+        }
+        if (calcHeight == 1) {
+            ctx.moveTo(x1 + 0.5 - logCanvasPadLeft, y1 + 0.5 - logCanvasPadTop);
+            ctx.lineTo(x2 + 0.5 - logCanvasPadLeft, y1 + 0.5 - logCanvasPadTop);
+            ctx.stroke();
+        } else if (calcWidth == 1) {
+            ctx.moveTo(x1 + 0.5 - logCanvasPadLeft, y1 + 0.5 - logCanvasPadTop);
+            ctx.lineTo(x1 + 0.5 - logCanvasPadLeft, y2 + 0.5 - logCanvasPadTop);
+            ctx.stroke();
+        } else {
+            ctx.fillRect(calcX - logCanvasPadLeft + 0.5, calcY - logCanvasPadTop + 0.5, calcWidth, calcHeight);
+        }
+    }
+    return ctx;
+}
+
+function selectionChanged(e) {
+    if (selection) {
+        x2 = e.pageX - this.offsetLeft;
+        y2 = e.pageY - this.offsetTop;
+        x2 = (x2 < 0) ? 0 : (x2 > logGraphWidth) ? logGraphWidth : x2;
+        y2 = (y2 < 0) ? 0 : (y2 > logGraphHeight) ? logGraphHeight : y2;
+
+        selDiv.css({
+            //position: 'absolute',
+            //zindex: 5000,
+            left: (x1 < x2) ? x1 + this.offsetLeft : x2 + this.offsetLeft,
+            top: (y1 < y2) ? y1 + this.offsetTop : y2 + this.offsetTop,
+            width: (x1 < x2) ? x2 - x1 : x1 - x2,
+            height: (y1 < y2) ? y2 - y1 : y1 - y2
+        });
+        $("#current").html('(' + x1 + ',' + y1 + '),(' + x2 + ',' + y2 + ')');
+    }
+}
+
+function doSearch() {
+    initgraph();
+    var parms = prepareSearchParms();
+    $("#current").html(JSON.stringify(parms));
+    $.getJSON(
+        "@Url.Content("~/Search")",
+        parms,
+        returnSearch
+    );
+}
+
+function returnSearch(data) {
+    var ctx;
+    $("#errors").html(data.errmsg);
+    if (data.errmsg != "") {
+
+    }
+    else {
+        $.each(data.points, function (i, item){
+            if (item.length <= 4) {
+                ctx = drawPoint(ctx, item[0], item[1], item[2], item[3]);
+            }
+            else {
+                ctx = drawPoint(ctx, item[0] , item[1] , item[2] , item[3], item[4], item[5], item[6]);
+            }
+        });
+    }
+    $("#status").html(JSON.stringify(data));
+}
+
+function prepareSearchParms() {
+    var ret = {offSetX: offSetX + logCanvasPadLeft, offSetY: offSetY + logCanvasPadTop};
+    ret.exceptionOnly = ($("#exceptionOnly").attr("checked") == "checked") ? true : false;
+    ret.dateOptions = $("input[name='dateOptions']:checked").val();
+    ret.fromDate = $("#fromDate").val();
+    ret.fromTime = $("#fromTime").val();
+    ret.toDate = $("#toDate").val();
+    ret.toTime = $("#toTime").val();
+    ret.textSearch = $("#textsearch").val();
+    ret.clientIP = $("#cip1").val() + "." + $("#cip2").val() + "." + $("#cip3").val() + "." + $("#cip4").val();
+    ret.serverIP = $("#sip1").val() + "." + $("#sip2").val() + "." + $("#sip3").val() + "." + $("#sip4").val();
+    ret.totalFrom = $("#totalFrom").val();
+    ret.totalTo = $("#totalTo").val();
+    ret.detailFrom = $("#detailFrom").val();
+    ret.detailTo = $("#detailTo").val();
+    return ret;
+}
 </script>
 <div id="detailView" class="modal hide fade">
     <div class="modal-header">
@@ -255,7 +352,7 @@ $(function() {
                     </div><!-- To DateTime -->
                     <div class="control-group">
                         <label>Text Search</label>
-                        <input id="textsearch" type="text" />
+                        <textarea id="textsearch" rows="1"></textarea>
                     </div><!-- Text Search -->
                     <div class="control-group">
                         <label>Client IP</label>
@@ -293,7 +390,9 @@ $(function() {
                 <div id="selection" class="selectiondiv"></div>
                 <canvas id="logCanvas" class="log-canvas" width="600" height="360">No support for HTML5 Canvas</canvas>
             </div>
+            <p id="errors" style="font-weight: bold; color: #ff0000;"></p>
             <p id="status">(0,0),(0,0)</p>
+            <p id="current">(0,0),(0,0)</p>
         </div><!--span8-->
     </div><!--row-->
 </div><!--container

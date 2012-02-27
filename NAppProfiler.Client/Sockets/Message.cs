@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Dynamic;
 
 namespace NAppProfiler.Client.Sockets
 {
@@ -10,16 +11,20 @@ namespace NAppProfiler.Client.Sockets
         private int curPosition;
         private byte[] hdr;
         private int hdrIndex;
+        private ExpandoObject messageBag;
 
         public byte[] Data { get { return data; } }
 
         public MessageTypes Type { get { return type; } }
+
+        public dynamic MessageBag { get { return messageBag; } }
 
         public Message()
         {
             this.dataSize = -1;
             this.hdrIndex = 0;
             this.type = MessageTypes.Invalid;
+            this.messageBag = new ExpandoObject();
         }
 
         private void AppendBytes(byte[] buffer, int bufferSize, int startIndex)
