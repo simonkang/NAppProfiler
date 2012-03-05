@@ -14,7 +14,7 @@ namespace NAppProfiler.Server.Tests.Sockets
         public void VerifyMessageIsCreated_OneMessage()
         {
             var msgData = Log.SerializeLog(CreateLog());
-            var data = Message.CreateMessageByte(msgData, MessageTypes.SendLog);
+            var data = Message.CreateMessageByte(msgData, MessageTypes.SendLog, Guid.NewGuid());
             var target = new ReceiveStateObject();
             Buffer.BlockCopy(data, 0, target.Buffer, 0, data.Length);
             var ret = target.AppendBuffer(data.Length);

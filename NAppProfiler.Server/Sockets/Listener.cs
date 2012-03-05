@@ -134,7 +134,15 @@ namespace NAppProfiler.Server.Sockets
             {
                 if (beginRec)
                 {
-                    state.ClientSocket.BeginReceive(state.Buffer, 0, ReceiveStateObject.MaxBufferSize, SocketFlags.None, new AsyncCallback(EndReceive_Callback), state);
+                    try
+                    {
+                        state.ClientSocket.BeginReceive(state.Buffer, 0, ReceiveStateObject.MaxBufferSize, SocketFlags.None, new AsyncCallback(EndReceive_Callback), state);
+                    }
+                    catch (SocketException) { }
+                    catch (Exception ex)
+                    {
+                        nLogger.ErrorException("Listener EndReceive trying to call BeginReceive", ex);
+                    }
                 }
             }
         }

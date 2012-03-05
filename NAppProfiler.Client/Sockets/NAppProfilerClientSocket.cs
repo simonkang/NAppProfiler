@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Net.Sockets;
 
 namespace NAppProfiler.Client.Sockets
@@ -8,22 +9,57 @@ namespace NAppProfiler.Client.Sockets
         private Socket socket;
         private object socketLock;
         private DateTime lastFailTime;
+        private static ConcurrentDictionary<Guid, MessageTrackingObject> messageTracker;
+        private Action<Message> clientMessageArrviedHandler;
+
+        static NAppProfilerClientSocket()
+        {
+            messageTracker = new ConcurrentDictionary<Guid, MessageTrackingObject>();
+        }
 
         public NAppProfilerClientSocket(string host, int port, Action<Message> onMessageArrived)
             : base(host, port, onMessageArrived)
         {
             this.socketLock = new object();
             this.lastFailTime = DateTime.MinValue;
+            if (onMessageArrived != null)
+            {
+                this.clientMessageArrviedHandler = onMessageArrived;
+                this.onMessageArrived = new Action<Message>(OnMessageArrivedSocketHandler);
+            }
         }
 
-        public override void Send(MessageTypes type, byte[] data)
+        private void OnMessageArrivedSocketHandler(Message msg)
+        {
+            if (messageTracker.ContainsKey(msg.MessageGuid))
+            {
+                MessageTrackingObject msgTrack = null;
+                if (messageTracker.TryRemove(msg.MessageGuid, out msgTrack))
+                {
+                    msg.MessageBag = msgTrack.MessageBag;
+                }
+            }
+            clientMessageArrviedHandler(msg);
+        }
+
+        public override void Send(MessageTypes type, byte[] data, object messageBag)
         {
             var local = CurrentSocket();
             if (local != null)
             {
                 try
                 {
-                    var msg = Message.CreateMessageByte(data, type);
+                    byte[] msg = null;
+                    if (messageBag != null)
+                    {
+                        var msgTrack = new MessageTrackingObject(messageBag);
+                        messageTracker.TryAdd(msgTrack.MessageGuid, msgTrack);
+                        msg = Message.CreateMessageByte(data, type, msgTrack.MessageGuid);
+                    }
+                    else
+                    {
+                        msg = Message.CreateMessageByte(data, type);
+                    }
                     local.BeginSend(msg, 0, msg.Length, SocketFlags.None, new AsyncCallback(this.EndSend), local);
                 }
                 catch (SocketException)

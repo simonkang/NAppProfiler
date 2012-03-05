@@ -26,11 +26,7 @@ namespace NAppProfiler.Client.Sockets
             {
                 this.port = port;
             }
-            if (onMessageArrived != null)
-            {
-                this.onMessageArrived = onMessageArrived;
-            }
-            else
+            if (onMessageArrived == null)
             {
                 this.onMessageArrived = new Action<Message>(OnMessageArrivedNull);
             }
@@ -41,7 +37,7 @@ namespace NAppProfiler.Client.Sockets
             //Empty Method to Disregard Messages if onMessageArrived is Not set.
         }
 
-        public abstract void Send(MessageTypes type, byte[] data);
+        public abstract void Send(MessageTypes type, byte[] data, dynamic messageBag);
         public abstract void Close();
     }
 }

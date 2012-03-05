@@ -37,22 +37,22 @@ namespace NAppProfiler.Client
         public static void SendLog(Log log)
         {
             var data = Log.SerializeLog(log);
-            CurrentSocket().Send(MessageTypes.SendLog, data);
+            CurrentSocket().Send(MessageTypes.SendLog, data, null);
         }
 
         public static void SendEmpty()
         {
-            CurrentSocket().Send(MessageTypes.Empty, new byte[0]);
+            CurrentSocket().Send(MessageTypes.Empty, new byte[0], null);
         }
 
-        public static void SendQuery(LogQuery query)
+        public static void SendQuery(LogQuery query, dynamic messageBag)
         {
-            CurrentSocket().Send(MessageTypes.Query, LogQuery.SerializeQuery(query));
+            CurrentSocket().Send(MessageTypes.Query, LogQuery.SerializeQuery(query), messageBag);
         }
 
-        public static void SendLogRequest(LogQueryResults results)
+        public static void SendLogRequest(LogQueryResults results, dynamic messageBag)
         {
-            CurrentSocket().Send(MessageTypes.GetLogs, results.Serialize());
+            CurrentSocket().Send(MessageTypes.GetLogs, results.Serialize(), messageBag);
         }
 
         public static void Close()
