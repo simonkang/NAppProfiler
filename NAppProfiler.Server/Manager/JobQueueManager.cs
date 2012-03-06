@@ -319,7 +319,14 @@ namespace NAppProfiler.Server.Manager
                 {
                     if (tasks[i] != null)
                     {
-                        tasks[i].Wait(5000);
+                        try
+                        {
+                            tasks[i].Wait(5000);
+                        }
+                        catch (AggregateException ex)
+                        {
+                            nLogger.FatalException("Dispose", ex);
+                        }
                         tasks[i].Dispose();
                     }
                 }

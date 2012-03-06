@@ -37,7 +37,7 @@ namespace NAppProfiler.Client.Sockets
             //Empty Method to Disregard Messages if onMessageArrived is Not set.
         }
 
-        public abstract void Send(MessageTypes type, byte[] data, dynamic messageBag);
+        public abstract void Send(MessageTypes type, byte[] data, object messageBag);
         public abstract void Close();
     }
 }

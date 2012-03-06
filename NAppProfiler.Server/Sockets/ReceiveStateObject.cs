@@ -28,6 +28,11 @@ namespace NAppProfiler.Server.Sockets
             get { return msg.Type; }
         }
 
+        public Guid MessageGuid
+        {
+            get { return msg.MessageGuid; }
+        }
+
         public ReceiveStatuses Status { get; private set; }
 
         public ReceiveStateObject()

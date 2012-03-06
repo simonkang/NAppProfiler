@@ -200,7 +200,7 @@ namespace NAppProfiler.Server.Manager
         private void SendResult(LogQueryResults result)
         {
             var data = result.Serialize();
-            var msg = Message.CreateMessageByte(data, MessageTypes.Results);
+            var msg = Message.CreateMessageByte(data, MessageTypes.Results, result.RequestID);
             result.ClientSocket.BeginSend(msg, 0, msg.Length, SocketFlags.None, new AsyncCallback(EndSend), result.ClientSocket);
         }
 

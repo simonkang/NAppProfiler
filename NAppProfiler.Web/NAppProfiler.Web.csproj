@@ -70,6 +70,8 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Models\SearchRequest.cs" />
+    <Compile Include="NappProfilerClientManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -175,7 +177,10 @@
     <Content Include="Views\Shared\_Layout.cshtml" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Models\" />
+    <ProjectReference Include="..\NAppProfiler.Client\NAppProfiler.Client.csproj">
+      <Project>{BBECB4DE-81A9-48CB-9A28-8FC9D3EA1BDD}</Project>
+      <Name>NAppProfiler.Client</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config" />

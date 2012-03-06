@@ -107,7 +107,7 @@ namespace NAppProfiler.Server.Sockets
                             state.Clear();
                             if (status < bytesReceived)
                             {
-                                status = state.AppendBuffer(bytesReceived, status);
+                                status = state.AppendBuffer(bytesReceived);
                                 doLoop = true;
                             }
                         }
@@ -158,7 +158,7 @@ namespace NAppProfiler.Server.Sockets
                     ProcessEmptyItem();
                     break;
                 case MessageTypes.Query:
-                    ProcessQueryRequest(state.Data, state.ClientSocket);
+                    ProcessQueryRequest(state.Data, state.ClientSocket, state.MessageGuid);
                     break;
                 case MessageTypes.GetLogs:
                     ProcessLogRequest(state.Data, state.ClientSocket);
@@ -198,10 +198,11 @@ namespace NAppProfiler.Server.Sockets
             AddJob(item);
         }
 
-        private void ProcessQueryRequest(byte[] data, Socket client)
+        private void ProcessQueryRequest(byte[] data, Socket client, Guid requestGuid)
         {
             var query = LogQuery.DeserializeQuery(data);
             query.ClientSocket = client;
+            query.RequestID = requestGuid;
             var item = new JobItem(JobMethods.Index_QueryRequest);
             item.LogQueries = new List<LogQuery>(1);
             item.LogQueries.Add(query);

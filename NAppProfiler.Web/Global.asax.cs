@@ -4,6 +4,8 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
+using NAppProfiler.Client;
+using NAppProfiler.Client.Sockets;
 
 namespace NAppProfiler.Web
 {
@@ -26,7 +28,7 @@ namespace NAppProfiler.Web
                 "{controller}/{action}/{id}", // URL with parameters
                 new { controller = "Home", action = "Index", id = UrlParameter.Optional } // Parameter defaults
             );
-
+            NAppProfilerClient.Initialize(null, "127.0.0.1", 0, new Action<Message>(NappProfilerClientManager.OnMessageArrived));
         }
 
         protected void Application_Start()

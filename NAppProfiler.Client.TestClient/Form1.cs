@@ -87,7 +87,7 @@ namespace NAppProfiler.Client.TestClient
             if (!results.IncludeData)
             {
                 var idRequest = new LogQueryResults() { IncludeData = true };
-                if (idRequest.LogIDs != null)
+                if (results.LogIDs != null)
                 {
                     idRequest.LogIDs = results.LogIDs.Take(100).ToList();
                     NAppProfilerClient.SendLogRequest(idRequest, null);
@@ -116,7 +116,7 @@ namespace NAppProfiler.Client.TestClient
             var qry = new LogQuery();
             qry.DateTime_From = new DateTime(2012, 02, 14);
             qry.DateTime_To = new DateTime(2012, 02, 16);
-            NAppProfilerClient.SendQuery(qry, null);
+            NAppProfilerClient.SendQuery(qry, Guid.NewGuid());
         }
     }
 }

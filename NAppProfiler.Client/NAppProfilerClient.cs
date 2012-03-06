@@ -45,12 +45,12 @@ namespace NAppProfiler.Client
             CurrentSocket().Send(MessageTypes.Empty, new byte[0], null);
         }
 
-        public static void SendQuery(LogQuery query, dynamic messageBag)
+        public static void SendQuery(LogQuery query, object messageBag)
         {
             CurrentSocket().Send(MessageTypes.Query, LogQuery.SerializeQuery(query), messageBag);
         }
 
-        public static void SendLogRequest(LogQueryResults results, dynamic messageBag)
+        public static void SendLogRequest(LogQueryResults results, object messageBag)
         {
             CurrentSocket().Send(MessageTypes.GetLogs, results.Serialize(), messageBag);
         }
