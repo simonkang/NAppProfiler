@@ -112,7 +112,7 @@ function initgraph() {
     vertheaders(ctx, offSetX, offSetY, canWidth - (offSetX * 2), canHeight - (offSetY * 2), 10);
     // Border for Graph
     ctx.strokeStyle = "rgb(0,0,0)";
-    ctx.beginPath(); ctx.moveTo(offSetX + 0.5, offSetY + 0.5); ctx.lineTo(offSetX + 0.5, canHeight - offSetY - 0.5); ctx.lineTo(canWidth - offSetX + 0.5, canHeight - offSetY - 0.5); ctx.lineTo(canWidth - offSetX + 0.5, offSetY + 0.5); ctx.lineTo(offSetX + 0.5, offSetY + 0.5); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(offSetX + 0.5, offSetY + 0.5); ctx.lineTo(offSetX + 0.5, canHeight - offSetY + 0.5); ctx.lineTo(canWidth - offSetX + 0.5, canHeight - offSetY + 0.5); ctx.lineTo(canWidth - offSetX + 0.5, offSetY + 0.5); ctx.lineTo(offSetX + 0.5, offSetY + 0.5); ctx.stroke();
 }
 
 function horaxis(ctx, x, y, w, h, n) {
@@ -184,27 +184,27 @@ function drawPoint(ctx, px1, py1, px2, py2, r, g, b) {
         ctx.fill();
     }
     else {
-        if (x2 > x1) {
-            calcWidth = x2 - x1;
-            calcX = x1;
+        if (px2 > px1) {
+            calcWidth = px2 - px1;
+            calcX = px1;
         } else {
-            calcWidth = x1 - x2;
-            calcX = x2;
+            calcWidth = px1 - px2;
+            calcX = px2;
         }
-        if (y2 > y1) {
-            calcHeight = y2 - y1;
-            calcY = y1;
+        if (py2 > py1) {
+            calcHeight = py2 - py1;
+            calcY = py1;
         } else {
-            calcHeight = y1 - y2;
-            calcY = y2;
+            calcHeight = py1 - py2;
+            calcY = py2;
         }
-        if (calcHeight == 1) {
-            ctx.moveTo(x1 + 0.5 - logCanvasPadLeft, y1 + 0.5 - logCanvasPadTop);
-            ctx.lineTo(x2 + 0.5 - logCanvasPadLeft, y1 + 0.5 - logCanvasPadTop);
+        if (calcHeight <= 1) {
+            ctx.moveTo(px1 + 0.5 - logCanvasPadLeft, py1 + 0.5 - logCanvasPadTop);
+            ctx.lineTo(px2 + 0.5 - logCanvasPadLeft, py1 + 0.5 - logCanvasPadTop);
             ctx.stroke();
-        } else if (calcWidth == 1) {
-            ctx.moveTo(x1 + 0.5 - logCanvasPadLeft, y1 + 0.5 - logCanvasPadTop);
-            ctx.lineTo(x1 + 0.5 - logCanvasPadLeft, y2 + 0.5 - logCanvasPadTop);
+        } else if (calcWidth <= 1) {
+            ctx.moveTo(px1 + 0.5 - logCanvasPadLeft, py1 + 0.5 - logCanvasPadTop);
+            ctx.lineTo(px1 + 0.5 - logCanvasPadLeft, py2 + 0.5 - logCanvasPadTop);
             ctx.stroke();
         } else {
             ctx.fillRect(calcX - logCanvasPadLeft + 0.5, calcY - logCanvasPadTop + 0.5, calcWidth, calcHeight);
@@ -263,7 +263,7 @@ function returnSearch(data) {
 }
 
 function prepareSearchParms() {
-    var ret = {offSetX: offSetX + logCanvasPadLeft, offSetY: offSetY + logCanvasPadTop};
+    var ret = {offSetX: offSetX + logCanvasPadLeft, offSetY: offSetY + logCanvasPadTop, canvasHeight: $("#logCanvas").height() - offSetX - offSetX, canvasWidth: $("#logCanvas").width() - offSetY - offSetY};
     ret.exceptionOnly = ($("#exceptionOnly").attr("checked") == "checked") ? true : false;
     ret.dateOptions = $("input[name='dateOptions']:checked").val();
     ret.fromDate = $("#fromDate").val();

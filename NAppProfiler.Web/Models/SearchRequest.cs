@@ -9,6 +9,8 @@ namespace NAppProfiler.Web.Models
     {
         public int offSetX { get; set; }
         public int offSetY { get; set; }
+        public int canvasHeight { get; set; }
+        public int canvasWidth { get; set; }
         public bool exceptionOnly { get; set; }
         public string dateOptions { get; set; }
         public string fromDate { get; set; }

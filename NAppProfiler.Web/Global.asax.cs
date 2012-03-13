@@ -28,7 +28,6 @@ namespace NAppProfiler.Web
                 "{controller}/{action}/{id}", // URL with parameters
                 new { controller = "Home", action = "Index", id = UrlParameter.Optional } // Parameter defaults
             );
-            NAppProfilerClient.Initialize(null, "127.0.0.1", 0, new Action<Message>(NappProfilerClientManager.OnMessageArrived));
         }
 
         protected void Application_Start()
@@ -37,6 +36,12 @@ namespace NAppProfiler.Web
 
             RegisterGlobalFilters(GlobalFilters.Filters);
             RegisterRoutes(RouteTable.Routes);
+            NAppProfilerClient.Initialize(null, "127.0.0.1", 0, new Action<Message>(NappProfilerClientManager.OnMessageArrived));
+        }
+
+        protected void Application_End()
+        {
+            NAppProfilerClient.Close();
         }
     }
 }
