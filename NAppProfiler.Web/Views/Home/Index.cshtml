@@ -245,9 +245,8 @@ function doSearch() {
 
 function returnSearch(data) {
     var ctx;
-    $("#errors").html(data.errmsg);
     if (data.errmsg != "") {
-
+        $("#errors").html(data.errmsg);
     }
     else {
         $.each(data.points, function (i, item){
