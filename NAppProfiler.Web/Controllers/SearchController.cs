@@ -70,7 +70,11 @@ namespace NAppProfiler.Web.Controllers
         private DateTime? ParseDateTime(string dt)
         {
             DateTime temp;
-            if (DateTime.TryParseExact(dt, "yy-MM-dd HH:mm", 
-       }
+            if (!DateTime.TryParseExact(dt, "yy-MM-dd HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out temp))
+            {
+                return null;
+            }
+            return temp;
+        }
     }
 }
